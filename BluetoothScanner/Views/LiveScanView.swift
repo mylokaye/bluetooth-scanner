@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LiveScanView: View {
     @EnvironmentObject private var appState: AppState
+    @State private var selectedCategory: KnownDeviceCategorySummary?
 
     var body: some View {
         List {
@@ -77,8 +78,8 @@ struct LiveScanView: View {
                         spacing: 12
                     ) {
                         ForEach(appState.knownDeviceCategorySummaries) { summary in
-                            NavigationLink {
-                                KnownCategoryDevicesView(summary: summary)
+                            Button {
+                                selectedCategory = summary
                             } label: {
                                 CategorySummaryTile(summary: summary)
                             }
@@ -91,6 +92,9 @@ struct LiveScanView: View {
 
         }
         .navigationTitle("Live Scan")
+        .navigationDestination(item: $selectedCategory) { summary in
+            KnownCategoryDevicesView(summary: summary)
+        }
     }
 }
 
@@ -206,50 +210,45 @@ private struct DeviceRow: View {
 
     let device: BluetoothDevice
 
-    private var classification: DeviceClassification {
+    private var classification: DetectedDeviceClassification {
         appState.classification(for: device)
     }
 
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: classification.symbolName)
-                .foregroundStyle(.tint)
-                .frame(width: 28)
+    private var activityStatus: ActivityStatus {
+        appState.activityStatus(for: device.id)
+    }
 
-            VStack(alignment: .leading, spacing: 5) {
+    var body: some View {
+        HStack(alignment: .center, spacing: 14) {
+            Image(systemName: classification.symbolName)
+                .font(.title2)
+                .foregroundStyle(.tint)
+                .frame(width: 36)
+
+            VStack(alignment: .leading, spacing: 3) {
                 Text(displayName)
                     .font(.headline)
-                Text(device.advertisedName ?? "No advertised name")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                if let advertisedName = device.advertisedName {
+                    Text(advertisedName)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
                 Text(detailText)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text("Last seen \(device.lastSeen.formatted(date: .omitted, time: .shortened))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 4) {
-                if let rssi = appState.liveRSSI(for: device.id) {
-                    Text("\(rssi) dBm")
-                        .font(.callout.monospacedDigit())
-                }
-                Text(appState.distanceCategory(for: device.id).rawValue)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
+            ActivityPill(status: activityStatus)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 
     private var detailText: String {
-        if let manufacturerName = classification.manufacturerName {
+        if let manufacturerName = classification.manufacturer {
             return "\(classification.categoryName) · \(manufacturerName)"
         }
-
         return classification.categoryName
     }
 
@@ -260,9 +259,22 @@ private struct DeviceRow: View {
         if let displayName = device.displayName, displayName != "Unknown BLE Device" {
             return displayName
         }
-        if let manufacturerName = classification.manufacturerName {
+        if let manufacturerName = classification.manufacturer {
             return "\(manufacturerName) \(classification.categoryName)"
         }
         return classification.categoryName
+    }
+}
+
+private struct ActivityPill: View {
+    let status: ActivityStatus
+
+    var body: some View {
+        Text(status.displayName)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(status.color, in: Capsule())
     }
 }

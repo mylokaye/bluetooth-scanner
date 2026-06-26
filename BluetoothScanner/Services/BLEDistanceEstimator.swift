@@ -40,6 +40,7 @@ final class BLEDistanceEstimator {
     private var lastRSSIDate: Date?
     private var displayedDistance: Double?
     private var lastDisplayUpdateDate: Date?
+    private var lastKnownGoodSnapshot: BLEDistanceSnapshot?
 
     init(
         txPower: Double = -59,
@@ -94,6 +95,13 @@ final class BLEDistanceEstimator {
 
     func snapshot(at date: Date = Date()) -> BLEDistanceSnapshot {
         guard isFresh(at: date), let smoothedRSSIValue else {
+            // Return the last known good snapshot while the signal is stale,
+            // so the UI continues to show distance information instead of
+            // immediately flipping to "Unavailable".
+            if let cached = lastKnownGoodSnapshot {
+                return cached
+            }
+
             return BLEDistanceSnapshot(
                 estimatedDistance: nil,
                 proximity: .unavailable,
@@ -104,13 +112,15 @@ final class BLEDistanceEstimator {
         }
 
         let distance = displayedDistance ?? estimatedDistance(for: smoothedRSSIValue)
-        return BLEDistanceSnapshot(
+        let snapshot = BLEDistanceSnapshot(
             estimatedDistance: distance,
             proximity: proximity(for: distance),
             confidence: confidenceScore(),
             smoothedRSSI: smoothedRSSIValue,
             isAvailable: true
         )
+        lastKnownGoodSnapshot = snapshot
+        return snapshot
     }
 
     private func updateDisplayedDistanceIfNeeded(at date: Date) {

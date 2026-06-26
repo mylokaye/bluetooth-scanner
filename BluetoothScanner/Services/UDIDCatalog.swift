@@ -6,30 +6,6 @@ struct UDIDCatalogEntry: Hashable {
     let category: String
 }
 
-struct DeviceClassification: Hashable {
-    let categoryName: String
-    let manufacturerName: String?
-    let symbolName: String
-    let matchedUUID: String?
-    let manufacturerIdentifier: String?
-    let appearanceName: String?
-    let appearanceValue: Int?
-    let inferredCategory: DeviceCategory
-
-    var isKnown: Bool {
-        manufacturerName != nil || matchedUUID != nil || appearanceName != nil
-    }
-}
-
-struct KnownDeviceCategorySummary: Identifiable, Hashable {
-    let categoryName: String
-    let symbolName: String
-    let count: Int
-    let lastSeen: Date?
-
-    var id: String { categoryName }
-}
-
 final class UDIDCatalog {
     static let empty = UDIDCatalog(entriesByUUID: [:])
 
@@ -87,8 +63,11 @@ final class ManufacturerIdentifierCatalog {
     }
 
     func manufacturerName(for identifier: String?) -> String? {
-        guard let identifier = identifier.flatMap(CatalogCSV.normalizeIdentifier) else { return nil }
-        return manufacturersByIdentifier[identifier]
+        guard let identifier else { return nil }
+        return CatalogCSV.identifierLookupKeys(identifier)
+            .lazy
+            .compactMap { self.manufacturersByIdentifier[$0] }
+            .first
     }
 
     private static func parse(csv: String) -> [String: String] {
@@ -97,8 +76,11 @@ final class ManufacturerIdentifierCatalog {
 
         for row in rows.dropFirst() where row.count >= 2 {
             let company = row[0].trimmingCharacters(in: .whitespacesAndNewlines)
-            guard let identifier = CatalogCSV.normalizeIdentifier(row[1]) else { continue }
-            result[identifier] = company
+            for identifierValue in row[1].split(separator: ",") {
+                for key in CatalogCSV.identifierLookupKeys(String(identifierValue)) {
+                    result[key] = company
+                }
+            }
         }
 
         return result
@@ -155,6 +137,19 @@ final class AppearanceCatalog {
 }
 
 enum CatalogCSV {
+    static func identifierLookupKeys(_ value: String) -> [String] {
+        guard let normalized = normalizeIdentifier(value) else { return [] }
+        var keys = [normalized]
+
+        if let integerValue = Int(normalized, radix: 16) {
+            keys.append(String(integerValue, radix: 16).uppercased())
+            keys.append(String(format: "%04X", integerValue))
+            keys.append(String(integerValue))
+        }
+
+        return Array(Set(keys))
+    }
+
     static func normalizeIdentifier(_ uuid: String) -> String? {
         let trimmed = uuid
             .trimmingCharacters(in: .whitespacesAndNewlines)

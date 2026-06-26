@@ -103,18 +103,7 @@ struct ClusterDetectionService {
             .filter { $0.id != anchorDevice.id }
             .compactMap { device -> (BluetoothDevice, Int)? in
                 let coPresence = coPresenceCount(for: [anchorDevice.id, device.id], sessions: sessions)
-                let rssiSimilarity = rssiSimilarityScore(
-                    observationsByDevice[anchorDevice.id] ?? [],
-                    observationsByDevice[device.id] ?? []
-                )
-                let hasCompatibleDistance = hasCompatibleDistanceBands(
-                    observationsByDevice[anchorDevice.id] ?? [],
-                    observationsByDevice[device.id] ?? []
-                )
-                let isStrong = hasCompatibleDistance && (
-                    (coPresence >= 2 && rssiSimilarity >= 0.6) ||
-                    (coPresence >= 1 && rssiSimilarity >= 0.82)
-                )
+                let isStrong = coPresence >= 2
                 return isStrong ? (device, coPresence) : nil
             }
             .sorted { $0.1 > $1.1 }
@@ -128,14 +117,11 @@ struct ClusterDetectionService {
         seenTogetherCount: Int
     ) -> Double {
         let repeatedCoPresence = min(Double(seenTogetherCount) / 8.0, 0.45)
-        let rssiScore = related
-            .map { rssiSimilarityScore(observationsByDevice[anchorDevice.id] ?? [], observationsByDevice[$0.id] ?? []) }
-            .max() ?? 0
         let timingScore = related
             .map { timingSimilarityScore(observationsByDevice[anchorDevice.id] ?? [], observationsByDevice[$0.id] ?? []) }
             .max() ?? 0
 
-        return min(0.95, 0.2 + repeatedCoPresence + (rssiScore * 0.2) + (timingScore * 0.15))
+        return min(0.95, 0.2 + repeatedCoPresence + (timingScore * 0.15))
     }
 
     private func confidenceLabel(for score: Double) -> ConfidenceLabel {
@@ -154,32 +140,6 @@ struct ClusterDetectionService {
         }.count
     }
 
-    private func rssiSimilarityScore(_ lhs: [ScanObservation], _ rhs: [ScanObservation]) -> Double {
-        guard let leftAverage = averageRSSI(lhs), let rightAverage = averageRSSI(rhs) else { return 0 }
-        let difference = abs(leftAverage - rightAverage)
-        return max(0, 1 - (difference / 35.0))
-    }
-
-    private func hasCompatibleDistanceBands(_ lhs: [ScanObservation], _ rhs: [ScanObservation]) -> Bool {
-        guard let leftAverage = averageRSSI(lhs), let rightAverage = averageRSSI(rhs) else {
-            return false
-        }
-
-        let leftCategory = DistanceCategory(rssi: Int(leftAverage.rounded()))
-        let rightCategory = DistanceCategory(rssi: Int(rightAverage.rounded()))
-
-        if leftCategory == rightCategory {
-            return true
-        }
-
-        switch (leftCategory, rightCategory) {
-        case (.close, .nearby), (.nearby, .close), (.far, .weak), (.weak, .far):
-            return true
-        default:
-            return false
-        }
-    }
-
     private func timingSimilarityScore(_ lhs: [ScanObservation], _ rhs: [ScanObservation]) -> Double {
         guard let leftFirst = lhs.map(\.timestamp).min(),
               let rightFirst = rhs.map(\.timestamp).min(),
@@ -191,11 +151,6 @@ struct ClusterDetectionService {
         let departureGap = abs(leftLast.timeIntervalSince(rightLast))
         let combinedGap = arrivalGap + departureGap
         return max(0, 1 - (combinedGap / 120.0))
-    }
-
-    private func averageRSSI(_ observations: [ScanObservation]) -> Double? {
-        guard !observations.isEmpty else { return nil }
-        return Double(observations.map(\.rssi).reduce(0, +)) / Double(observations.count)
     }
 
     private func displayName(_ device: BluetoothDevice) -> String {

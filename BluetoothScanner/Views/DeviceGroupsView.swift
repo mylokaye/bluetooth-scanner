@@ -37,13 +37,32 @@ private struct ClusterCard: View {
         }
     }
 
+    /// Devices in the cluster split into known (named) and unknown groups.
+    private var deviceGroups: (known: [(id: String, name: String)], unknownCount: Int) {
+        var known: [(id: String, name: String)] = []
+        var unknownCount = 0
+
+        for deviceId in cluster.deviceIds {
+            guard let device = appState.device(id: deviceId) else { continue }
+            let name = device.localAlias ?? device.displayName
+
+            if let name, name != "Unknown BLE Device" {
+                known.append((id: deviceId, name: name))
+            } else {
+                unknownCount += 1
+            }
+        }
+
+        return (known, unknownCount)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.headline)
-                        Text("\(cluster.confidenceLabel.rawValue.capitalized) · \(Int(cluster.confidenceScore * 100))%")
+                    Text("\(cluster.confidenceLabel.rawValue.capitalized) · \(Int(cluster.confidenceScore * 100))%")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -56,20 +75,26 @@ private struct ClusterCard: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(cluster.deviceIds, id: \.self) { deviceId in
-                    if let device = appState.device(id: deviceId) {
-                        NavigationLink {
-                            DeviceDetailView(deviceId: deviceId)
-                        } label: {
-                            HStack {
-                                Image(systemName: "dot.radiowaves.forward")
-                                    .foregroundStyle(.tint)
-                                Text(device.localAlias ?? device.displayName ?? "Unknown BLE Device")
-                                Spacer()
-                                Text(appState.distanceCategory(for: deviceId).rawValue)
-                                    .foregroundStyle(.secondary)
-                            }
+                // Named devices shown individually with navigation.
+                ForEach(deviceGroups.known, id: \.id) { item in
+                    NavigationLink {
+                        DeviceDetailView(deviceId: item.id)
+                    } label: {
+                        HStack {
+                            Image(systemName: "dot.radiowaves.forward")
+                                .foregroundStyle(.tint)
+                            Text(item.name)
                         }
+                    }
+                }
+
+                // Collapse all unknown devices into a single summary row.
+                if deviceGroups.unknownCount > 0 {
+                    HStack {
+                        Image(systemName: "dot.radiowaves.forward")
+                            .foregroundStyle(.secondary)
+                        Text("Unknown Devices (\(deviceGroups.unknownCount))")
+                            .foregroundStyle(.secondary)
                     }
                 }
             }

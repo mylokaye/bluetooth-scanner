@@ -1,0 +1,2123 @@
+[
+  {
+    "appearanceId": 0,
+    "appearanceIdHex": "0x0000",
+    "category": "Unknown",
+    "subcategory": null,
+    "description": "Unknown"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Phone",
+    "subcategory": null,
+    "description": "Phone"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Desktop Workstation",
+    "subcategory": null,
+    "description": "Desktop Workstation"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Server-class Computer",
+    "subcategory": null,
+    "description": "Server-class Computer"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Laptop",
+    "subcategory": null,
+    "description": "Laptop"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Handheld PC/PDA (clamshell)",
+    "subcategory": null,
+    "description": "Handheld PC/PDA (clamshell)"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Palm-size PC/PDA",
+    "subcategory": null,
+    "description": "Palm-size PC/PDA"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Wearable computer (watch size)",
+    "subcategory": null,
+    "description": "Wearable computer (watch size)"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Tablet",
+    "subcategory": null,
+    "description": "Tablet"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Docking Station",
+    "subcategory": null,
+    "description": "Docking Station"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "All in One",
+    "subcategory": null,
+    "description": "All in One"
+  },
+  {
+    "appearanceId": 10,
+    "appearanceIdHex": "0x000A",
+    "category": "Blade Server",
+    "subcategory": null,
+    "description": "Blade Server"
+  },
+  {
+    "appearanceId": 11,
+    "appearanceIdHex": "0x000B",
+    "category": "Convertible",
+    "subcategory": null,
+    "description": "Convertible"
+  },
+  {
+    "appearanceId": 12,
+    "appearanceIdHex": "0x000C",
+    "category": "Detachable",
+    "subcategory": null,
+    "description": "Detachable"
+  },
+  {
+    "appearanceId": 13,
+    "appearanceIdHex": "0x000D",
+    "category": "IoT Gateway",
+    "subcategory": null,
+    "description": "IoT Gateway"
+  },
+  {
+    "appearanceId": 14,
+    "appearanceIdHex": "0x000E",
+    "category": "Mini PC",
+    "subcategory": null,
+    "description": "Mini PC"
+  },
+  {
+    "appearanceId": 15,
+    "appearanceIdHex": "0x000F",
+    "category": "Stick PC",
+    "subcategory": null,
+    "description": "Stick PC"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Sports Watch",
+    "subcategory": null,
+    "description": "Sports Watch"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Smartwatch",
+    "subcategory": null,
+    "description": "Smartwatch"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Clock",
+    "subcategory": null,
+    "description": "Clock"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Display",
+    "subcategory": null,
+    "description": "Display"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Remote Control",
+    "subcategory": null,
+    "description": "Remote Control"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Eye-glasses",
+    "subcategory": null,
+    "description": "Eye-glasses"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Tag",
+    "subcategory": null,
+    "description": "Tag"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Keyring",
+    "subcategory": null,
+    "description": "Keyring"
+  },
+  {
+    "appearanceId": 10,
+    "appearanceIdHex": "0x000A",
+    "category": "Media Player",
+    "subcategory": null,
+    "description": "Media Player"
+  },
+  {
+    "appearanceId": 11,
+    "appearanceIdHex": "0x000B",
+    "category": "Barcode Scanner",
+    "subcategory": null,
+    "description": "Barcode Scanner"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Ear Thermometer",
+    "subcategory": null,
+    "description": "Ear Thermometer"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Heart Rate Belt",
+    "subcategory": null,
+    "description": "Heart Rate Belt"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Arm Blood Pressure",
+    "subcategory": null,
+    "description": "Arm Blood Pressure"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Wrist Blood Pressure",
+    "subcategory": null,
+    "description": "Wrist Blood Pressure"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Keyboard",
+    "subcategory": null,
+    "description": "Keyboard"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Mouse",
+    "subcategory": null,
+    "description": "Mouse"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Joystick",
+    "subcategory": null,
+    "description": "Joystick"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Gamepad",
+    "subcategory": null,
+    "description": "Gamepad"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Digitizer Tablet",
+    "subcategory": null,
+    "description": "Digitizer Tablet"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Card Reader",
+    "subcategory": null,
+    "description": "Card Reader"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Digital Pen",
+    "subcategory": null,
+    "description": "Digital Pen"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Barcode Scanner",
+    "subcategory": null,
+    "description": "Barcode Scanner"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Touchpad",
+    "subcategory": null,
+    "description": "Touchpad"
+  },
+  {
+    "appearanceId": 10,
+    "appearanceIdHex": "0x000A",
+    "category": "Presentation Remote",
+    "subcategory": null,
+    "description": "Presentation Remote"
+  },
+  {
+    "appearanceId": 16,
+    "appearanceIdHex": "0x0010",
+    "category": "Glucose Meter",
+    "subcategory": null,
+    "description": "Glucose Meter"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "In-Shoe Running Walking Sensor",
+    "subcategory": null,
+    "description": "In-Shoe Running Walking Sensor"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "On-Shoe Running Walking Sensor",
+    "subcategory": null,
+    "description": "On-Shoe Running Walking Sensor"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "On-Hip Running Walking Sensor",
+    "subcategory": null,
+    "description": "On-Hip Running Walking Sensor"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Cycling Computer",
+    "subcategory": null,
+    "description": "Cycling Computer"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Speed Sensor",
+    "subcategory": null,
+    "description": "Speed Sensor"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Cadence Sensor",
+    "subcategory": null,
+    "description": "Cadence Sensor"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Power Sensor",
+    "subcategory": null,
+    "description": "Power Sensor"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Speed and Cadence Sensor",
+    "subcategory": null,
+    "description": "Speed and Cadence Sensor"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Switch",
+    "subcategory": null,
+    "description": "Switch"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Multi-switch",
+    "subcategory": null,
+    "description": "Multi-switch"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Button",
+    "subcategory": null,
+    "description": "Button"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Slider",
+    "subcategory": null,
+    "description": "Slider"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Rotary Switch",
+    "subcategory": null,
+    "description": "Rotary Switch"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Touch Panel",
+    "subcategory": null,
+    "description": "Touch Panel"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Single Switch",
+    "subcategory": null,
+    "description": "Single Switch"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Double Switch",
+    "subcategory": null,
+    "description": "Double Switch"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Triple Switch",
+    "subcategory": null,
+    "description": "Triple Switch"
+  },
+  {
+    "appearanceId": 10,
+    "appearanceIdHex": "0x000A",
+    "category": "Battery Switch",
+    "subcategory": null,
+    "description": "Battery Switch"
+  },
+  {
+    "appearanceId": 11,
+    "appearanceIdHex": "0x000B",
+    "category": "Energy Harvesting Switch",
+    "subcategory": null,
+    "description": "Energy Harvesting Switch"
+  },
+  {
+    "appearanceId": 12,
+    "appearanceIdHex": "0x000C",
+    "category": "Push Button",
+    "subcategory": null,
+    "description": "Push Button"
+  },
+  {
+    "appearanceId": 13,
+    "appearanceIdHex": "0x000D",
+    "category": "Dial",
+    "subcategory": null,
+    "description": "Dial"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Access Point",
+    "subcategory": null,
+    "description": "Access Point"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Mesh Device",
+    "subcategory": null,
+    "description": "Mesh Device"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Mesh Network Proxy",
+    "subcategory": null,
+    "description": "Mesh Network Proxy"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Motion Sensor",
+    "subcategory": null,
+    "description": "Motion Sensor"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Air quality Sensor",
+    "subcategory": null,
+    "description": "Air quality Sensor"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Temperature Sensor",
+    "subcategory": null,
+    "description": "Temperature Sensor"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Humidity Sensor",
+    "subcategory": null,
+    "description": "Humidity Sensor"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Leak Sensor",
+    "subcategory": null,
+    "description": "Leak Sensor"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Smoke Sensor",
+    "subcategory": null,
+    "description": "Smoke Sensor"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Occupancy Sensor",
+    "subcategory": null,
+    "description": "Occupancy Sensor"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Contact Sensor",
+    "subcategory": null,
+    "description": "Contact Sensor"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Carbon Monoxide Sensor",
+    "subcategory": null,
+    "description": "Carbon Monoxide Sensor"
+  },
+  {
+    "appearanceId": 10,
+    "appearanceIdHex": "0x000A",
+    "category": "Carbon Dioxide Sensor",
+    "subcategory": null,
+    "description": "Carbon Dioxide Sensor"
+  },
+  {
+    "appearanceId": 11,
+    "appearanceIdHex": "0x000B",
+    "category": "Ambient Light Sensor",
+    "subcategory": null,
+    "description": "Ambient Light Sensor"
+  },
+  {
+    "appearanceId": 12,
+    "appearanceIdHex": "0x000C",
+    "category": "Energy Sensor",
+    "subcategory": null,
+    "description": "Energy Sensor"
+  },
+  {
+    "appearanceId": 13,
+    "appearanceIdHex": "0x000D",
+    "category": "Color Light Sensor",
+    "subcategory": null,
+    "description": "Color Light Sensor"
+  },
+  {
+    "appearanceId": 14,
+    "appearanceIdHex": "0x000E",
+    "category": "Rain Sensor",
+    "subcategory": null,
+    "description": "Rain Sensor"
+  },
+  {
+    "appearanceId": 15,
+    "appearanceIdHex": "0x000F",
+    "category": "Fire Sensor",
+    "subcategory": null,
+    "description": "Fire Sensor"
+  },
+  {
+    "appearanceId": 16,
+    "appearanceIdHex": "0x0010",
+    "category": "Wind Sensor",
+    "subcategory": null,
+    "description": "Wind Sensor"
+  },
+  {
+    "appearanceId": 17,
+    "appearanceIdHex": "0x0011",
+    "category": "Proximity Sensor",
+    "subcategory": null,
+    "description": "Proximity Sensor"
+  },
+  {
+    "appearanceId": 18,
+    "appearanceIdHex": "0x0012",
+    "category": "Multi-Sensor",
+    "subcategory": null,
+    "description": "Multi-Sensor"
+  },
+  {
+    "appearanceId": 19,
+    "appearanceIdHex": "0x0013",
+    "category": "Flush Mounted Sensor",
+    "subcategory": null,
+    "description": "Flush Mounted Sensor"
+  },
+  {
+    "appearanceId": 20,
+    "appearanceIdHex": "0x0014",
+    "category": "Ceiling Mounted Sensor",
+    "subcategory": null,
+    "description": "Ceiling Mounted Sensor"
+  },
+  {
+    "appearanceId": 21,
+    "appearanceIdHex": "0x0015",
+    "category": "Wall Mounted Sensor",
+    "subcategory": null,
+    "description": "Wall Mounted Sensor"
+  },
+  {
+    "appearanceId": 22,
+    "appearanceIdHex": "0x0016",
+    "category": "Multisensor",
+    "subcategory": null,
+    "description": "Multisensor"
+  },
+  {
+    "appearanceId": 23,
+    "appearanceIdHex": "0x0017",
+    "category": "Energy Meter",
+    "subcategory": null,
+    "description": "Energy Meter"
+  },
+  {
+    "appearanceId": 24,
+    "appearanceIdHex": "0x0018",
+    "category": "Flame Detector",
+    "subcategory": null,
+    "description": "Flame Detector"
+  },
+  {
+    "appearanceId": 25,
+    "appearanceIdHex": "0x0019",
+    "category": "Vehicle Tire Pressure Sensor",
+    "subcategory": null,
+    "description": "Vehicle Tire Pressure Sensor"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Wall Light",
+    "subcategory": null,
+    "description": "Wall Light"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Ceiling Light",
+    "subcategory": null,
+    "description": "Ceiling Light"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Floor Light",
+    "subcategory": null,
+    "description": "Floor Light"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Cabinet Light",
+    "subcategory": null,
+    "description": "Cabinet Light"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Desk Light",
+    "subcategory": null,
+    "description": "Desk Light"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Troffer Light",
+    "subcategory": null,
+    "description": "Troffer Light"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Pendant Light",
+    "subcategory": null,
+    "description": "Pendant Light"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "In-ground Light",
+    "subcategory": null,
+    "description": "In-ground Light"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Flood Light",
+    "subcategory": null,
+    "description": "Flood Light"
+  },
+  {
+    "appearanceId": 10,
+    "appearanceIdHex": "0x000A",
+    "category": "Underwater Light",
+    "subcategory": null,
+    "description": "Underwater Light"
+  },
+  {
+    "appearanceId": 11,
+    "appearanceIdHex": "0x000B",
+    "category": "Bollard with Light",
+    "subcategory": null,
+    "description": "Bollard with Light"
+  },
+  {
+    "appearanceId": 12,
+    "appearanceIdHex": "0x000C",
+    "category": "Pathway Light",
+    "subcategory": null,
+    "description": "Pathway Light"
+  },
+  {
+    "appearanceId": 13,
+    "appearanceIdHex": "0x000D",
+    "category": "Garden Light",
+    "subcategory": null,
+    "description": "Garden Light"
+  },
+  {
+    "appearanceId": 14,
+    "appearanceIdHex": "0x000E",
+    "category": "Pole-top Light",
+    "subcategory": null,
+    "description": "Pole-top Light"
+  },
+  {
+    "appearanceId": 15,
+    "appearanceIdHex": "0x000F",
+    "category": "Spotlight",
+    "subcategory": null,
+    "description": "Spotlight"
+  },
+  {
+    "appearanceId": 16,
+    "appearanceIdHex": "0x0010",
+    "category": "Linear Light",
+    "subcategory": null,
+    "description": "Linear Light"
+  },
+  {
+    "appearanceId": 17,
+    "appearanceIdHex": "0x0011",
+    "category": "Street Light",
+    "subcategory": null,
+    "description": "Street Light"
+  },
+  {
+    "appearanceId": 18,
+    "appearanceIdHex": "0x0012",
+    "category": "Shelves Light",
+    "subcategory": null,
+    "description": "Shelves Light"
+  },
+  {
+    "appearanceId": 19,
+    "appearanceIdHex": "0x0013",
+    "category": "Bay Light",
+    "subcategory": null,
+    "description": "Bay Light"
+  },
+  {
+    "appearanceId": 20,
+    "appearanceIdHex": "0x0014",
+    "category": "Emergency Exit Light",
+    "subcategory": null,
+    "description": "Emergency Exit Light"
+  },
+  {
+    "appearanceId": 21,
+    "appearanceIdHex": "0x0015",
+    "category": "Light Controller",
+    "subcategory": null,
+    "description": "Light Controller"
+  },
+  {
+    "appearanceId": 22,
+    "appearanceIdHex": "0x0016",
+    "category": "Light Driver",
+    "subcategory": null,
+    "description": "Light Driver"
+  },
+  {
+    "appearanceId": 23,
+    "appearanceIdHex": "0x0017",
+    "category": "Bulb",
+    "subcategory": null,
+    "description": "Bulb"
+  },
+  {
+    "appearanceId": 24,
+    "appearanceIdHex": "0x0018",
+    "category": "Low-bay Light",
+    "subcategory": null,
+    "description": "Low-bay Light"
+  },
+  {
+    "appearanceId": 25,
+    "appearanceIdHex": "0x0019",
+    "category": "High-bay Light",
+    "subcategory": null,
+    "description": "High-bay Light"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Ceiling Fan",
+    "subcategory": null,
+    "description": "Ceiling Fan"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Axial Fan",
+    "subcategory": null,
+    "description": "Axial Fan"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Exhaust Fan",
+    "subcategory": null,
+    "description": "Exhaust Fan"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Pedestal Fan",
+    "subcategory": null,
+    "description": "Pedestal Fan"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Desk Fan",
+    "subcategory": null,
+    "description": "Desk Fan"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Wall Fan",
+    "subcategory": null,
+    "description": "Wall Fan"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Thermostat",
+    "subcategory": null,
+    "description": "Thermostat"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Humidifier",
+    "subcategory": null,
+    "description": "Humidifier"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "De-humidifier",
+    "subcategory": null,
+    "description": "De-humidifier"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Heater",
+    "subcategory": null,
+    "description": "Heater"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Radiator",
+    "subcategory": null,
+    "description": "Radiator"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Boiler",
+    "subcategory": null,
+    "description": "Boiler"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Heat Pump",
+    "subcategory": null,
+    "description": "Heat Pump"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Infrared Heater",
+    "subcategory": null,
+    "description": "Infrared Heater"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Radiant Panel Heater",
+    "subcategory": null,
+    "description": "Radiant Panel Heater"
+  },
+  {
+    "appearanceId": 10,
+    "appearanceIdHex": "0x000A",
+    "category": "Fan Heater",
+    "subcategory": null,
+    "description": "Fan Heater"
+  },
+  {
+    "appearanceId": 11,
+    "appearanceIdHex": "0x000B",
+    "category": "Air Curtain",
+    "subcategory": null,
+    "description": "Air Curtain"
+  },
+  {
+    "appearanceId": 25,
+    "appearanceIdHex": "0x0019",
+    "category": "Air Conditioning",
+    "subcategory": null,
+    "description": "Air Conditioning"
+  },
+  {
+    "appearanceId": 26,
+    "appearanceIdHex": "0x001A",
+    "category": "Humidifier",
+    "subcategory": null,
+    "description": "Humidifier"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Radiator",
+    "subcategory": null,
+    "description": "Radiator"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Boiler",
+    "subcategory": null,
+    "description": "Boiler"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Heat Pump",
+    "subcategory": null,
+    "description": "Heat Pump"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Infrared Heater",
+    "subcategory": null,
+    "description": "Infrared Heater"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Radiant Panel Heater",
+    "subcategory": null,
+    "description": "Radiant Panel Heater"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Fan Heater",
+    "subcategory": null,
+    "description": "Fan Heater"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Air Curtain",
+    "subcategory": null,
+    "description": "Air Curtain"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Access Door",
+    "subcategory": null,
+    "description": "Access Door"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Garage Door",
+    "subcategory": null,
+    "description": "Garage Door"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Emergency Exit Door",
+    "subcategory": null,
+    "description": "Emergency Exit Door"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Access Lock",
+    "subcategory": null,
+    "description": "Access Lock"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Elevator",
+    "subcategory": null,
+    "description": "Elevator"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Window",
+    "subcategory": null,
+    "description": "Window"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Entrance Gate",
+    "subcategory": null,
+    "description": "Entrance Gate"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Door Lock",
+    "subcategory": null,
+    "description": "Door Lock"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Locker",
+    "subcategory": null,
+    "description": "Locker"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Motorized Gate",
+    "subcategory": null,
+    "description": "Motorized Gate"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Awning",
+    "subcategory": null,
+    "description": "Awning"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Blinds or Shades",
+    "subcategory": null,
+    "description": "Blinds or Shades"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Curtains",
+    "subcategory": null,
+    "description": "Curtains"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Screen",
+    "subcategory": null,
+    "description": "Screen"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Power Outlet",
+    "subcategory": null,
+    "description": "Power Outlet"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Power Strip",
+    "subcategory": null,
+    "description": "Power Strip"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Plug",
+    "subcategory": null,
+    "description": "Plug"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Power Supply",
+    "subcategory": null,
+    "description": "Power Supply"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "LED Driver",
+    "subcategory": null,
+    "description": "LED Driver"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Fluorescent Lamp Gear",
+    "subcategory": null,
+    "description": "Fluorescent Lamp Gear"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "HID Lamp Gear",
+    "subcategory": null,
+    "description": "HID Lamp Gear"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Charge Case",
+    "subcategory": null,
+    "description": "Charge Case"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Power Bank",
+    "subcategory": null,
+    "description": "Power Bank"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Incandescent Light Bulb",
+    "subcategory": null,
+    "description": "Incandescent Light Bulb"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "LED Lamp",
+    "subcategory": null,
+    "description": "LED Lamp"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "HID Lamp",
+    "subcategory": null,
+    "description": "HID Lamp"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Fluorescent Lamp",
+    "subcategory": null,
+    "description": "Fluorescent Lamp"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "LED Array",
+    "subcategory": null,
+    "description": "LED Array"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Multi-Color LED Array",
+    "subcategory": null,
+    "description": "Multi-Color LED Array"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Low voltage halogen",
+    "subcategory": null,
+    "description": "Low voltage halogen"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Organic light emitting diode (OLED)",
+    "subcategory": null,
+    "description": "Organic light emitting diode (OLED)"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Window Shades",
+    "subcategory": null,
+    "description": "Window Shades"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Window Blinds",
+    "subcategory": null,
+    "description": "Window Blinds"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Window Awning",
+    "subcategory": null,
+    "description": "Window Awning"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Window Curtain",
+    "subcategory": null,
+    "description": "Window Curtain"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Exterior Shutter",
+    "subcategory": null,
+    "description": "Exterior Shutter"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Exterior Screen",
+    "subcategory": null,
+    "description": "Exterior Screen"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Standalone Speaker",
+    "subcategory": null,
+    "description": "Standalone Speaker"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Soundbar",
+    "subcategory": null,
+    "description": "Soundbar"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Bookshelf Speaker",
+    "subcategory": null,
+    "description": "Bookshelf Speaker"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Standmounted Speaker",
+    "subcategory": null,
+    "description": "Standmounted Speaker"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Speakerphone",
+    "subcategory": null,
+    "description": "Speakerphone"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Microphone",
+    "subcategory": null,
+    "description": "Microphone"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Alarm",
+    "subcategory": null,
+    "description": "Alarm"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Bell",
+    "subcategory": null,
+    "description": "Bell"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Horn",
+    "subcategory": null,
+    "description": "Horn"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Broadcasting Device",
+    "subcategory": null,
+    "description": "Broadcasting Device"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Service Desk",
+    "subcategory": null,
+    "description": "Service Desk"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Kiosk",
+    "subcategory": null,
+    "description": "Kiosk"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Broadcasting Room",
+    "subcategory": null,
+    "description": "Broadcasting Room"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Auditorium",
+    "subcategory": null,
+    "description": "Auditorium"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Car",
+    "subcategory": null,
+    "description": "Car"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Large Goods Vehicle",
+    "subcategory": null,
+    "description": "Large Goods Vehicle"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "2-Wheeled Vehicle",
+    "subcategory": null,
+    "description": "2-Wheeled Vehicle"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Motorbike",
+    "subcategory": null,
+    "description": "Motorbike"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Scooter",
+    "subcategory": null,
+    "description": "Scooter"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Moped",
+    "subcategory": null,
+    "description": "Moped"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "3-Wheeled Vehicle",
+    "subcategory": null,
+    "description": "3-Wheeled Vehicle"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Light Vehicle",
+    "subcategory": null,
+    "description": "Light Vehicle"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Quad Bike",
+    "subcategory": null,
+    "description": "Quad Bike"
+  },
+  {
+    "appearanceId": 10,
+    "appearanceIdHex": "0x000A",
+    "category": "Minibus",
+    "subcategory": null,
+    "description": "Minibus"
+  },
+  {
+    "appearanceId": 11,
+    "appearanceIdHex": "0x000B",
+    "category": "Bus",
+    "subcategory": null,
+    "description": "Bus"
+  },
+  {
+    "appearanceId": 12,
+    "appearanceIdHex": "0x000C",
+    "category": "Trolley",
+    "subcategory": null,
+    "description": "Trolley"
+  },
+  {
+    "appearanceId": 13,
+    "appearanceIdHex": "0x000D",
+    "category": "Agricultural Vehicle",
+    "subcategory": null,
+    "description": "Agricultural Vehicle"
+  },
+  {
+    "appearanceId": 14,
+    "appearanceIdHex": "0x000E",
+    "category": "Camper / Caravan",
+    "subcategory": null,
+    "description": "Camper / Caravan"
+  },
+  {
+    "appearanceId": 15,
+    "appearanceIdHex": "0x000F",
+    "category": "Recreational Vehicle / Motor Home",
+    "subcategory": null,
+    "description": "Recreational Vehicle / Motor Home"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Refrigerator",
+    "subcategory": null,
+    "description": "Refrigerator"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Freezer",
+    "subcategory": null,
+    "description": "Freezer"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Oven",
+    "subcategory": null,
+    "description": "Oven"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Microwave",
+    "subcategory": null,
+    "description": "Microwave"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Toaster",
+    "subcategory": null,
+    "description": "Toaster"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Washing Machine",
+    "subcategory": null,
+    "description": "Washing Machine"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Dryer",
+    "subcategory": null,
+    "description": "Dryer"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Coffee maker",
+    "subcategory": null,
+    "description": "Coffee maker"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Clothes iron",
+    "subcategory": null,
+    "description": "Clothes iron"
+  },
+  {
+    "appearanceId": 10,
+    "appearanceIdHex": "0x000A",
+    "category": "Curling iron",
+    "subcategory": null,
+    "description": "Curling iron"
+  },
+  {
+    "appearanceId": 11,
+    "appearanceIdHex": "0x000B",
+    "category": "Hair dryer",
+    "subcategory": null,
+    "description": "Hair dryer"
+  },
+  {
+    "appearanceId": 12,
+    "appearanceIdHex": "0x000C",
+    "category": "Vacuum cleaner",
+    "subcategory": null,
+    "description": "Vacuum cleaner"
+  },
+  {
+    "appearanceId": 13,
+    "appearanceIdHex": "0x000D",
+    "category": "Robotic vacuum cleaner",
+    "subcategory": null,
+    "description": "Robotic vacuum cleaner"
+  },
+  {
+    "appearanceId": 14,
+    "appearanceIdHex": "0x000E",
+    "category": "Rice cooker",
+    "subcategory": null,
+    "description": "Rice cooker"
+  },
+  {
+    "appearanceId": 15,
+    "appearanceIdHex": "0x000F",
+    "category": "Clothes steamer",
+    "subcategory": null,
+    "description": "Clothes steamer"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Earbud",
+    "subcategory": null,
+    "description": "Earbud"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Headset",
+    "subcategory": null,
+    "description": "Headset"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Headphones",
+    "subcategory": null,
+    "description": "Headphones"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Neck Band",
+    "subcategory": null,
+    "description": "Neck Band"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Left Earbud",
+    "subcategory": null,
+    "description": "Left Earbud"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Right Earbud",
+    "subcategory": null,
+    "description": "Right Earbud"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Light Aircraft",
+    "subcategory": null,
+    "description": "Light Aircraft"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Microlight",
+    "subcategory": null,
+    "description": "Microlight"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Paraglider",
+    "subcategory": null,
+    "description": "Paraglider"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Large Passenger Aircraft",
+    "subcategory": null,
+    "description": "Large Passenger Aircraft"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Amplifier",
+    "subcategory": null,
+    "description": "Amplifier"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Receiver",
+    "subcategory": null,
+    "description": "Receiver"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Radio",
+    "subcategory": null,
+    "description": "Radio"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Tuner",
+    "subcategory": null,
+    "description": "Tuner"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Turntable",
+    "subcategory": null,
+    "description": "Turntable"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "CD Player",
+    "subcategory": null,
+    "description": "CD Player"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "DVD Player",
+    "subcategory": null,
+    "description": "DVD Player"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Bluray Player",
+    "subcategory": null,
+    "description": "Bluray Player"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Optical Disc Player",
+    "subcategory": null,
+    "description": "Optical Disc Player"
+  },
+  {
+    "appearanceId": 10,
+    "appearanceIdHex": "0x000A",
+    "category": "Set-Top Box",
+    "subcategory": null,
+    "description": "Set-Top Box"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Television",
+    "subcategory": null,
+    "description": "Television"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Monitor",
+    "subcategory": null,
+    "description": "Monitor"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Projector",
+    "subcategory": null,
+    "description": "Projector"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "In-ear hearing aid",
+    "subcategory": null,
+    "description": "In-ear hearing aid"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Behind-ear hearing aid",
+    "subcategory": null,
+    "description": "Behind-ear hearing aid"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Cochlear Implant",
+    "subcategory": null,
+    "description": "Cochlear Implant"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Home Video Game Console",
+    "subcategory": null,
+    "description": "Home Video Game Console"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Portable handheld console",
+    "subcategory": null,
+    "description": "Portable handheld console"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Digital Signage",
+    "subcategory": null,
+    "description": "Digital Signage"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Electronic Label",
+    "subcategory": null,
+    "description": "Electronic Label"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Fingertip Pulse Oximeter",
+    "subcategory": null,
+    "description": "Fingertip Pulse Oximeter"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Wrist Worn Pulse Oximeter",
+    "subcategory": null,
+    "description": "Wrist Worn Pulse Oximeter"
+  },
+  {
+    "appearanceId": 50,
+    "appearanceIdHex": "0x0032",
+    "category": "Weight Scale",
+    "subcategory": null,
+    "description": "Weight Scale"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Powered Wheelchair",
+    "subcategory": null,
+    "description": "Powered Wheelchair"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Mobility Scooter",
+    "subcategory": null,
+    "description": "Mobility Scooter"
+  },
+  {
+    "appearanceId": 52,
+    "appearanceIdHex": "0x0034",
+    "category": "Continuous Glucose Monitor",
+    "subcategory": null,
+    "description": "Continuous Glucose Monitor"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Insulin Pump, durable pump",
+    "subcategory": null,
+    "description": "Insulin Pump, durable pump"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Insulin Pump, patch pump",
+    "subcategory": null,
+    "description": "Insulin Pump, patch pump"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Insulin Pen",
+    "subcategory": null,
+    "description": "Insulin Pen"
+  },
+  {
+    "appearanceId": 54,
+    "appearanceIdHex": "0x0036",
+    "category": "Medication Delivery",
+    "subcategory": null,
+    "description": "Medication Delivery"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Handheld Spirometer",
+    "subcategory": null,
+    "description": "Handheld Spirometer"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Location Display",
+    "subcategory": null,
+    "description": "Location Display"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Location and Navigation Display",
+    "subcategory": null,
+    "description": "Location and Navigation Display"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Location Pod",
+    "subcategory": null,
+    "description": "Location Pod"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Location and Navigation Pod",
+    "subcategory": null,
+    "description": "Location and Navigation Pod"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Torque Testing Device",
+    "subcategory": null,
+    "description": "Torque Testing Device"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Caliper",
+    "subcategory": null,
+    "description": "Caliper"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Dial Indicator",
+    "subcategory": null,
+    "description": "Dial Indicator"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Micrometer",
+    "subcategory": null,
+    "description": "Micrometer"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Height Gauge",
+    "subcategory": null,
+    "description": "Height Gauge"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Force Gauge",
+    "subcategory": null,
+    "description": "Force Gauge"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Machine Tool Holder",
+    "subcategory": null,
+    "description": "Machine Tool Holder"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Generic Clamping Device",
+    "subcategory": null,
+    "description": "Generic Clamping Device"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Clamping Jaws/Jaw Chuck",
+    "subcategory": null,
+    "description": "Clamping Jaws/Jaw Chuck"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Clamping (Collet) Chuck",
+    "subcategory": null,
+    "description": "Clamping (Collet) Chuck"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Clamping Mandrel",
+    "subcategory": null,
+    "description": "Clamping Mandrel"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Vise",
+    "subcategory": null,
+    "description": "Vise"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Zero-Point Clamping System",
+    "subcategory": null,
+    "description": "Zero-Point Clamping System"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Torque Wrench",
+    "subcategory": null,
+    "description": "Torque Wrench"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Torque Screwdriver",
+    "subcategory": null,
+    "description": "Torque Screwdriver"
+  },
+  {
+    "appearanceId": 1,
+    "appearanceIdHex": "0x0001",
+    "category": "Pot and Jugs",
+    "subcategory": null,
+    "description": "Pot and Jugs"
+  },
+  {
+    "appearanceId": 2,
+    "appearanceIdHex": "0x0002",
+    "category": "Pressure Cooker",
+    "subcategory": null,
+    "description": "Pressure Cooker"
+  },
+  {
+    "appearanceId": 3,
+    "appearanceIdHex": "0x0003",
+    "category": "Slow Cooker",
+    "subcategory": null,
+    "description": "Slow Cooker"
+  },
+  {
+    "appearanceId": 4,
+    "appearanceIdHex": "0x0004",
+    "category": "Steam Cooker",
+    "subcategory": null,
+    "description": "Steam Cooker"
+  },
+  {
+    "appearanceId": 5,
+    "appearanceIdHex": "0x0005",
+    "category": "Saucepan",
+    "subcategory": null,
+    "description": "Saucepan"
+  },
+  {
+    "appearanceId": 6,
+    "appearanceIdHex": "0x0006",
+    "category": "Frying Pan",
+    "subcategory": null,
+    "description": "Frying Pan"
+  },
+  {
+    "appearanceId": 7,
+    "appearanceIdHex": "0x0007",
+    "category": "Casserole",
+    "subcategory": null,
+    "description": "Casserole"
+  },
+  {
+    "appearanceId": 8,
+    "appearanceIdHex": "0x0008",
+    "category": "Dutch Oven",
+    "subcategory": null,
+    "description": "Dutch Oven"
+  },
+  {
+    "appearanceId": 9,
+    "appearanceIdHex": "0x0009",
+    "category": "Grill Pan/Raclette Grill/Griddle Pan",
+    "subcategory": null,
+    "description": "Grill Pan/Raclette Grill/Griddle Pan"
+  },
+  {
+    "appearanceId": 10,
+    "appearanceIdHex": "0x000A",
+    "category": "Braising Pan",
+    "subcategory": null,
+    "description": "Braising Pan"
+  },
+  {
+    "appearanceId": 11,
+    "appearanceIdHex": "0x000B",
+    "category": "Wok Pan",
+    "subcategory": null,
+    "description": "Wok Pan"
+  },
+  {
+    "appearanceId": 12,
+    "appearanceIdHex": "0x000C",
+    "category": "Paella Pan",
+    "subcategory": null,
+    "description": "Paella Pan"
+  },
+  {
+    "appearanceId": 13,
+    "appearanceIdHex": "0x000D",
+    "category": "Crepe Pan",
+    "subcategory": null,
+    "description": "Crepe Pan"
+  },
+  {
+    "appearanceId": 14,
+    "appearanceIdHex": "0x000E",
+    "category": "Tagine",
+    "subcategory": null,
+    "description": "Tagine"
+  },
+  {
+    "appearanceId": 15,
+    "appearanceIdHex": "0x000F",
+    "category": "Fondue",
+    "subcategory": null,
+    "description": "Fondue"
+  },
+  {
+    "appearanceId": 16,
+    "appearanceIdHex": "0x0010",
+    "category": "Lid",
+    "subcategory": null,
+    "description": "Lid"
+  },
+  {
+    "appearanceId": 17,
+    "appearanceIdHex": "0x0011",
+    "category": "Wired Probe",
+    "subcategory": null,
+    "description": "Wired Probe"
+  },
+  {
+    "appearanceId": 18,
+    "appearanceIdHex": "0x0012",
+    "category": "Wireless Probe",
+    "subcategory": null,
+    "description": "Wireless Probe"
+  },
+  {
+    "appearanceId": 19,
+    "appearanceIdHex": "0x0013",
+    "category": "Baking Molds",
+    "subcategory": null,
+    "description": "Baking Molds"
+  },
+  {
+    "appearanceId": 20,
+    "appearanceIdHex": "0x0014",
+    "category": "Baking Tray",
+    "subcategory": null,
+    "description": "Baking Tray"
+  }
+]

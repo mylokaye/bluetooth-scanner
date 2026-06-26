@@ -11,12 +11,20 @@ struct DeviceDetailView: View {
         appState.device(id: deviceId)
     }
 
-    private var classification: DeviceClassification? {
+    private var classification: DetectedDeviceClassification? {
         device.map { appState.classification(for: $0) }
     }
 
     private var distanceSnapshot: BLEDistanceSnapshot {
         appState.distanceSnapshot(for: deviceId, at: currentDate)
+    }
+
+    private var activityStatus: ActivityStatus {
+        appState.activityStatus(for: deviceId, at: currentDate)
+    }
+
+    private var latestObservation: ScanObservation? {
+        appState.observations(for: deviceId).first
     }
 
     private let distanceTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -25,7 +33,11 @@ struct DeviceDetailView: View {
         List {
             if let device {
                 Section {
-                    DistanceSummaryView(snapshot: distanceSnapshot)
+                    ActivityStatusView(
+                        status: activityStatus,
+                        subtitle: activitySubtitle,
+                        distanceSnapshot: distanceSnapshot
+                    )
                 }
                 .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
 
@@ -33,32 +45,64 @@ struct DeviceDetailView: View {
                     LabeledContent("Name", value: device.displayName ?? "Unknown BLE Device")
                     LabeledContent("Advertised name", value: device.advertisedName ?? "None")
                     if let classification {
-                        LabeledContent("Category", value: classification.categoryName)
                         LabeledContent("Manufacturer", value: manufacturerDisplayName(for: classification))
-                        if let appearanceName = classification.appearanceName {
-                            LabeledContent("Appearance", value: appearanceName)
-                        }
+                        LabeledContent("Category", value: classification.categoryName)
                     }
                 }
 
                 Section {
                     DisclosureGroup(isExpanded: $isAdvancedExpanded) {
+                        LabeledContent("Distance", value: distanceSnapshot.distanceText)
+                        LabeledContent("Status", value: distanceSnapshot.proximity.rawValue)
+                        LabeledContent("Distance confidence", value: "\(distanceSnapshot.confidence)%")
                         LabeledContent("Device identifier", value: device.id)
                         LabeledContent("First seen", value: device.firstSeen.formatted(date: .abbreviated, time: .standard))
                         LabeledContent("Last seen", value: device.lastSeen.formatted(date: .abbreviated, time: .standard))
                         LabeledContent("Distance band", value: appState.distanceCategory(for: device.id).rawValue)
 
                         if let classification {
-                            if let manufacturerIdentifier = classification.manufacturerIdentifier {
+                            if let likelyProduct = classification.likelyProduct {
+                                LabeledContent("Likely product", value: likelyProduct)
+                            }
+
+                            LabeledContent("Classification confidence", value: "\(classification.confidence)%")
+
+                            if let appearance = classification.appearance {
+                                LabeledContent("Appearance", value: appearance)
+                            }
+                        }
+
+                        if let latestObservation {
+                            let rssi = appState.liveRSSI(for: device.id) ?? latestObservation.rssi
+                            LabeledContent("RSSI", value: "\(rssi) dBm")
+
+                            if let txPower = latestObservation.txPower {
+                                LabeledContent("Tx power", value: "\(txPower) dBm")
+                            }
+
+                            if let manufacturerIdentifier = latestObservation.manufacturerIdentifier {
                                 LabeledContent("Manufacturer ID", value: "0x\(manufacturerIdentifier)")
                             }
 
-                            if let appearanceValue = classification.appearanceValue {
+                            if let appearanceValue = latestObservation.appearanceValue {
                                 LabeledContent("Appearance value", value: String(format: "0x%04X", appearanceValue))
                             }
 
-                            if let matchedUUID = classification.matchedUUID {
-                                LabeledContent("Matched service", value: "0x\(matchedUUID)")
+                            if !latestObservation.serviceUUIDs.isEmpty {
+                                LabeledContent("Service UUIDs", value: latestObservation.serviceUUIDs.joined(separator: ", "))
+                            }
+
+                            if let manufacturerDataSummary = latestObservation.manufacturerDataSummary {
+                                LabeledContent("Manufacturer data", value: manufacturerDataSummary)
+                            }
+                        }
+
+                        if let classification, !classification.evidence.isEmpty {
+                            ForEach(classification.evidence, id: \.self) { item in
+                                LabeledContent(
+                                    item.source,
+                                    value: "\(item.value) (+\(item.confidenceContribution))"
+                                )
                             }
                         }
                     } label: {
@@ -80,6 +124,27 @@ struct DeviceDetailView: View {
         .onReceive(distanceTimer) { date in
             currentDate = date
         }
+        .onAppear {
+            appState.startTrackingDistance(for: deviceId)
+        }
+        .onDisappear {
+            appState.stopTrackingDistance(for: deviceId)
+        }
+    }
+
+    // MARK: - Computed Helpers
+
+    private var activitySubtitle: String {
+        guard let device else { return "Never seen" }
+
+        switch activityStatus {
+        case .online:
+            return "Currently nearby"
+        case .recentlySeen:
+            return "Last seen \(device.lastSeen.formattedRelative(to: currentDate))"
+        case .offline:
+            return "Last seen \(device.lastSeen.formattedRelative(to: currentDate))"
+        }
     }
 
     private var deviceTitle: String {
@@ -93,68 +158,60 @@ struct DeviceDetailView: View {
         return "Device Detail"
     }
 
-    private func manufacturerDisplayName(for classification: DeviceClassification) -> String {
-        classification.manufacturerName ?? "Unknown"
+    private func manufacturerDisplayName(for classification: DetectedDeviceClassification) -> String {
+        classification.manufacturer ?? "Unknown"
     }
 }
 
-private struct DistanceSummaryView: View {
-    let snapshot: BLEDistanceSnapshot
+// MARK: - Activity Status View
+
+private struct ActivityStatusView: View {
+    let status: ActivityStatus
+    let subtitle: String
+    let distanceSnapshot: BLEDistanceSnapshot
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Distance")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.secondary)
-
-                    Text(snapshot.distanceText)
-                        .font(.system(size: 44, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75)
-                }
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(status.displayName)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(status.color, in: Capsule())
 
                 Spacer()
 
-                Image(systemName: snapshot.isAvailable ? "dot.radiowaves.left.and.right" : "slash.circle")
-                    .font(.title2)
-                    .foregroundStyle(snapshot.isAvailable ? Color.accentColor : Color.secondary)
-                    .frame(width: 44, height: 44)
-                    .background(.thinMaterial, in: Circle())
+                if distanceSnapshot.isAvailable {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(distanceSnapshot.distanceText)
+                            .font(.system(.title3, design: .rounded).weight(.bold))
+                            .monospacedDigit()
+                        Text("\(distanceSnapshot.confidence)% confidence")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
 
-            HStack(spacing: 12) {
-                MetricPill(title: "Status", value: snapshot.proximity.rawValue)
-                MetricPill(title: "Confidence", value: "\(snapshot.confidence)%")
-            }
+            Text(subtitle)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Distance \(snapshot.distanceText), status \(snapshot.proximity.rawValue), confidence \(snapshot.confidence) percent")
+        .accessibilityLabel(accessibilityText)
     }
-}
 
-private struct MetricPill: View {
-    let title: String
-    let value: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.headline)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
+    private var accessibilityText: String {
+        var parts = ["Activity status: \(status.displayName)", subtitle]
+        if distanceSnapshot.isAvailable {
+            parts.append("Distance: \(distanceSnapshot.distanceText)")
+            parts.append("Confidence: \(distanceSnapshot.confidence)%")
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(.background.opacity(0.55), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        return parts.joined(separator: ", ")
     }
 }

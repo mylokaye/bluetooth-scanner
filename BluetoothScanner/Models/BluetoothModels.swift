@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 struct BluetoothDevice: Identifiable, Codable, Hashable {
     let id: String
@@ -80,115 +81,6 @@ enum DistanceCategory: String {
     }
 }
 
-enum DeviceCategory: String, Codable, CaseIterable, Identifiable {
-    case phone
-    case headphones
-    case tv
-    case watch
-    case computer
-    case other
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .phone:
-            return "Phones"
-        case .headphones:
-            return "Headphones"
-        case .tv:
-            return "TVs"
-        case .watch:
-            return "Watches"
-        case .computer:
-            return "Computers"
-        case .other:
-            return "Other BLE"
-        }
-    }
-
-    var symbolName: String {
-        switch self {
-        case .phone:
-            return "iphone"
-        case .headphones:
-            return "headphones"
-        case .tv:
-            return "tv"
-        case .watch:
-            return "applewatch"
-        case .computer:
-            return "laptopcomputer"
-        case .other:
-            return "sensor.tag.radiowaves.forward"
-        }
-    }
-
-    var canAnchorGroup: Bool {
-        switch self {
-        case .phone, .tv, .watch:
-            return true
-        case .headphones, .computer, .other:
-            return false
-        }
-    }
-
-    static func infer(for device: BluetoothDevice, observations: [ScanObservation]) -> DeviceCategory {
-        let nameText = [
-            device.displayName,
-            device.advertisedName,
-            device.localAlias
-        ]
-        .compactMap { $0?.lowercased() }
-        .joined(separator: " ")
-        let services = observations.flatMap(\.serviceUUIDs).map { $0.lowercased() }
-
-        if nameText.contains("myphone") ||
-            nameText.contains("iphone") ||
-            nameText.contains("phone") ||
-            nameText.contains("android") ||
-            nameText.contains("pixel") ||
-            nameText.contains("galaxy") ||
-            services.contains("fd6f") ||
-            services.contains("fe9f") {
-            return .phone
-        }
-
-        if nameText.contains("airpods") ||
-            nameText.contains("headphone") ||
-            nameText.contains("headset") ||
-            nameText.contains("buds") ||
-            nameText.contains("beats") {
-            return .headphones
-        }
-
-        if nameText.contains("tv") ||
-            nameText.contains("roku") ||
-            nameText.contains("chromecast") ||
-            nameText.contains("bravia") ||
-            nameText.contains("samsung tv") ||
-            nameText.contains("lg webos") {
-            return .tv
-        }
-
-        if nameText.contains("watch") ||
-            nameText.contains("fitbit") ||
-            nameText.contains("garmin") {
-            return .watch
-        }
-
-        if nameText.contains("macbook") ||
-            nameText.contains("ipad") ||
-            nameText.contains("laptop") ||
-            nameText.contains("computer") ||
-            nameText.contains("pc") {
-            return .computer
-        }
-
-        return .other
-    }
-}
-
 struct DeviceCategorySummary: Identifiable, Hashable {
     let category: DeviceCategory
     let count: Int
@@ -203,4 +95,64 @@ struct AppDataSnapshot: Codable {
     var sessions: [ScanSession]
 
     static let empty = AppDataSnapshot(devices: [], observations: [], sessions: [])
+}
+
+// MARK: - Activity Status
+
+enum ActivityStatus: String, CaseIterable {
+    case online
+    case recentlySeen
+    case offline
+}
+
+// MARK: - Relative Time Formatting
+
+extension Date {
+    /// Returns a human-friendly relative time string such as "42s ago", "2m ago", or "4m 35s ago".
+    func formattedRelative(to date: Date = Date()) -> String {
+        let elapsed = max(0, date.timeIntervalSince(self))
+
+        if elapsed < 60 {
+            return "\(Int(elapsed))s ago"
+        } else if elapsed < 3_600 {
+            let minutes = Int(elapsed / 60)
+            let seconds = Int(elapsed.truncatingRemainder(dividingBy: 60))
+            if seconds == 0 {
+                return "\(minutes)m ago"
+            } else {
+                return "\(minutes)m \(seconds)s ago"
+            }
+        } else if elapsed < 86_400 {
+            let hours = Int(elapsed / 3_600)
+            let minutes = Int(elapsed.truncatingRemainder(dividingBy: 3_600) / 60)
+            if minutes == 0 {
+                return "\(hours)h ago"
+            } else {
+                return "\(hours)h \(minutes)m ago"
+            }
+        } else {
+            let days = Int(elapsed / 86_400)
+            return days == 1 ? "1d ago" : "\(days)d ago"
+        }
+    }
+}
+
+// MARK: - Activity Status UI Helpers
+
+extension ActivityStatus {
+    var displayName: String {
+        switch self {
+        case .online: return "Online"
+        case .recentlySeen: return "Recently Seen"
+        case .offline: return "Offline"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .online: return .green
+        case .recentlySeen: return .orange
+        case .offline: return .gray
+        }
+    }
 }
