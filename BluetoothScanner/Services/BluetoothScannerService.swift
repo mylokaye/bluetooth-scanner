@@ -13,6 +13,9 @@ final class BluetoothScannerService: NSObject, ObservableObject {
 
     private var centralManager: CBCentralManager?
     private var ignoredDeviceIds: Set<String> = []
+    private var lastEmissionByDeviceId: [String: (date: Date, rssi: Int)] = [:]
+    private let minimumDuplicateEmissionInterval: TimeInterval = 1
+    private let minimumRSSIDeltaForImmediateEmission = 6
 
     override init() {
         super.init()
@@ -31,6 +34,7 @@ final class BluetoothScannerService: NSObject, ObservableObject {
 
         liveDevices = []
         liveRSSI = [:]
+        lastEmissionByDeviceId = [:]
         isScanning = true
         centralManager.scanForPeripherals(
             withServices: nil,
@@ -41,6 +45,14 @@ final class BluetoothScannerService: NSObject, ObservableObject {
     func stopScanning() {
         centralManager?.stopScan()
         isScanning = false
+    }
+
+    func clearLiveData() {
+        stopScanning()
+        liveDevices = []
+        liveRSSI = [:]
+        ignoredDeviceIds = []
+        lastEmissionByDeviceId = [:]
     }
 
     func ignoreDevice(id: String) {
@@ -110,8 +122,10 @@ extension BluetoothScannerService: CBCentralManagerDelegate {
             let serviceUUIDs = (advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID] ?? [])
                 .map(\.uuidString)
             let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
+            let appearanceValue = (advertisementData["kCBAdvDataAppearance"] as? NSNumber)?.intValue
             let txPower = advertisementData[CBAdvertisementDataTxPowerLevelKey] as? Int
             let timestamp = Date()
+            let rssi = RSSI.intValue
 
             let device = BluetoothDevice(
                 id: deviceId,
@@ -124,26 +138,48 @@ extension BluetoothScannerService: CBCentralManagerDelegate {
                 localAlias: nil
             )
 
-            let observation = ScanObservation(
-                id: UUID(),
-                deviceId: deviceId,
-                timestamp: timestamp,
-                rssi: RSSI.intValue,
-                advertisedName: advertisedName,
-                serviceUUIDs: serviceUUIDs,
-                manufacturerDataSummary: manufacturerData.map(Self.manufacturerSummary),
-                txPower: txPower
-            )
+            let shouldEmit = shouldEmitObservation(deviceId: deviceId, rssi: rssi, at: timestamp)
+            guard shouldEmit else { return }
 
-            liveRSSI[deviceId] = RSSI.intValue
+            liveRSSI[deviceId] = rssi
             if let index = liveDevices.firstIndex(where: { $0.id == deviceId }) {
                 liveDevices[index] = device
             } else {
                 liveDevices.append(device)
             }
 
+            let observation = ScanObservation(
+                id: UUID(),
+                deviceId: deviceId,
+                timestamp: timestamp,
+                rssi: rssi,
+                advertisedName: advertisedName,
+                serviceUUIDs: serviceUUIDs,
+                manufacturerDataSummary: manufacturerData.map(Self.manufacturerSummary),
+                manufacturerIdentifier: manufacturerData.flatMap(Self.manufacturerIdentifier),
+                appearanceValue: appearanceValue,
+                txPower: txPower
+            )
+
             onObservation?(observation, device)
         }
+    }
+
+    private func shouldEmitObservation(deviceId: String, rssi: Int, at timestamp: Date) -> Bool {
+        guard let lastEmission = lastEmissionByDeviceId[deviceId] else {
+            lastEmissionByDeviceId[deviceId] = (timestamp, rssi)
+            return true
+        }
+
+        let elapsed = timestamp.timeIntervalSince(lastEmission.date)
+        let rssiDelta = abs(rssi - lastEmission.rssi)
+        let shouldEmit = elapsed >= minimumDuplicateEmissionInterval || rssiDelta >= minimumRSSIDeltaForImmediateEmission
+
+        if shouldEmit {
+            lastEmissionByDeviceId[deviceId] = (timestamp, rssi)
+        }
+
+        return shouldEmit
     }
 
     private static func manufacturerSummary(_ data: Data) -> String {
@@ -156,5 +192,11 @@ extension BluetoothScannerService: CBCentralManagerDelegate {
         }
 
         return "\(data.count) bytes: \(prefix)"
+    }
+
+    private static func manufacturerIdentifier(_ data: Data) -> String? {
+        guard data.count >= 2 else { return nil }
+        let identifier = UInt16(data[0]) | (UInt16(data[1]) << 8)
+        return String(format: "%04X", identifier)
     }
 }

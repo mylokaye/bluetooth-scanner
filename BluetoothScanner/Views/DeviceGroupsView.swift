@@ -5,17 +5,11 @@ struct DeviceGroupsView: View {
 
     var body: some View {
         List {
-            Section {
-                Text("Device Groups are approximate and probabilistic. These devices are commonly seen together.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-
             if appState.clusters.isEmpty {
                 ContentUnavailableView(
-                    "No phone groups yet",
+                    "No groups",
                     systemImage: "rectangle.3.group",
-                    description: Text("The app shows groups only when at least one phone-like BLE device has been detected.")
+                    description: Text("Start scanning to detect groups.")
                 )
             } else {
                 ForEach(appState.clusters) { cluster in
@@ -49,7 +43,7 @@ private struct ClusterCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.headline)
-                    Text("Confidence \(cluster.confidenceLabel.rawValue.capitalized) · \(Int(cluster.confidenceScore * 100))%")
+                        Text("\(cluster.confidenceLabel.rawValue.capitalized) · \(Int(cluster.confidenceScore * 100))%")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -81,17 +75,11 @@ private struct ClusterCard: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Label("First seen \(cluster.firstSeen.formatted(date: .abbreviated, time: .shortened))", systemImage: "calendar.badge.plus")
-                Label("Last seen \(cluster.lastSeen.formatted(date: .abbreviated, time: .shortened))", systemImage: "clock")
+                Label(cluster.firstSeen.formatted(date: .abbreviated, time: .shortened), systemImage: "calendar.badge.plus")
+                Label(cluster.lastSeen.formatted(date: .abbreviated, time: .shortened), systemImage: "clock")
             }
             .font(.caption)
             .foregroundStyle(.secondary)
-
-            ForEach(cluster.reasons, id: \.self) { reason in
-                Text(reason)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
         }
         .padding(.vertical, 6)
     }

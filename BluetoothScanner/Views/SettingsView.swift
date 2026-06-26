@@ -15,17 +15,9 @@ struct SettingsView: View {
                 LabeledContent("Storage", value: "Local JSON")
             }
 
-            Section("Safety") {
-                Text("All observations stay local on this device.")
-                Text("Device Groups are approximate and probabilistic.")
-                Text("The app scans BLE advertisements only while it is active.")
-            }
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-
             Section("Ignored Devices") {
                 if ignoredDevices.isEmpty {
-                    Text("No ignored devices.")
+                    Text("None")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(ignoredDevices) { device in

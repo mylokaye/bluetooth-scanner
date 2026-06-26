@@ -14,6 +14,11 @@ struct SessionService {
         currentSession = nil
     }
 
+    mutating func reset() {
+        sessions = []
+        currentSession = nil
+    }
+
     mutating func startSession(at date: Date = Date()) {
         currentSession = ScanSession(id: UUID(), startedAt: date, endedAt: nil, deviceIds: [])
     }
