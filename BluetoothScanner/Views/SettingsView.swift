@@ -22,7 +22,7 @@ struct SettingsView: View {
                 } else {
                     ForEach(ignoredDevices) { device in
                         VStack(alignment: .leading) {
-                            Text(device.displayName ?? "Unknown BLE Device")
+                            Text(displayName(for: device))
                             Text(device.id)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -39,5 +39,15 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Settings")
+    }
+
+    private func displayName(for device: BluetoothDevice) -> String {
+        guard let displayName = device.displayName,
+              displayName != "Unknown BLE Device",
+              displayName != "-"
+        else {
+            return "-"
+        }
+        return displayName
     }
 }

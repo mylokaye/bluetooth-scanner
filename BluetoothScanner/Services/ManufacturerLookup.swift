@@ -8,8 +8,8 @@ struct ManufacturerLookup {
 
     private let manufacturersByCompanyId: [Int: BluetoothManufacturer]
 
-    init(bundle: Bundle = .main, resourceName: String = "bluetooth_manufacturers") {
-        guard let url = bundle.url(forResource: resourceName, withExtension: "json") else {
+    init(bundle: Bundle = .main, resourceName: String = "company_ids", subdirectory: String? = "data") {
+        guard let url = bundle.url(forResource: resourceName, withExtension: "json", subdirectory: subdirectory) else {
             Self.logger.error("Missing bundled manufacturer JSON resource: \(resourceName).json")
             self.manufacturersByCompanyId = [:]
             return
@@ -17,7 +17,8 @@ struct ManufacturerLookup {
 
         do {
             let data = try Data(contentsOf: url)
-            let manufacturers = try JSONDecoder().decode([BluetoothManufacturer].self, from: data)
+            let manufacturers = try JSONDecoder().decode([CompanyIdentifierRecord].self, from: data)
+                .map(BluetoothManufacturer.init(record:))
             self.manufacturersByCompanyId = Self.makeDictionary(from: manufacturers)
         } catch {
             Self.logger.error("Failed to load manufacturer JSON: \(error.localizedDescription)")
@@ -33,16 +34,18 @@ struct ManufacturerLookup {
     /// decoding off the calling thread. Safe to call from any concurrency context.
     static func loadFromBundle(
         bundle: Bundle = .main,
-        resourceName: String = "bluetooth_manufacturers"
+        resourceName: String = "company_ids",
+        subdirectory: String? = "data"
     ) async -> ManufacturerLookup {
-        guard let url = bundle.url(forResource: resourceName, withExtension: "json") else {
+        guard let url = bundle.url(forResource: resourceName, withExtension: "json", subdirectory: subdirectory) else {
             logger.error("Missing bundled manufacturer JSON resource: \(resourceName).json")
             return .empty
         }
 
         do {
             let data = try Data(contentsOf: url)
-            let manufacturers = try JSONDecoder().decode([BluetoothManufacturer].self, from: data)
+            let manufacturers = try JSONDecoder().decode([CompanyIdentifierRecord].self, from: data)
+                .map(BluetoothManufacturer.init(record:))
             return ManufacturerLookup(manufacturers: manufacturers)
         } catch {
             logger.error("Failed to load manufacturer JSON: \(error.localizedDescription)")
@@ -63,5 +66,20 @@ struct ManufacturerLookup {
 
     func manufacturer(for companyId: Int) -> BluetoothManufacturer? {
         manufacturersByCompanyId[companyId]
+    }
+}
+
+private struct CompanyIdentifierRecord: Decodable {
+    let code: Int
+    let name: String
+}
+
+private extension BluetoothManufacturer {
+    init(record: CompanyIdentifierRecord) {
+        self.init(
+            companyId: record.code,
+            companyIdHex: String(format: "0x%04X", record.code),
+            manufacturer: record.name
+        )
     }
 }

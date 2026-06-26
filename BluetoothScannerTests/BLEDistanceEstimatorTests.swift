@@ -50,6 +50,86 @@ final class BLEDistanceEstimatorTests: XCTestCase {
         XCTAssertFalse(snapshot.isAvailable)
         XCTAssertEqual(snapshot.proximity, .unavailable)
         XCTAssertEqual(snapshot.confidence, 0)
-        XCTAssertEqual(snapshot.distanceText, "Unknown")
+        XCTAssertEqual(snapshot.distanceText, "-")
+    }
+}
+
+final class ProximityStabilizerTests: XCTestCase {
+    func testMedianSmoothingIgnoresSingleRSSISpike() {
+        let stabilizer = ProximityStabilizer(minimumUpdateInterval: 0)
+        let start = Date(timeIntervalSince1970: 10_000)
+
+        [-57, -57].enumerated().forEach { offset, rssi in
+            stabilizer.update(rssi: rssi, at: start.addingTimeInterval(Double(offset)))
+        }
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(2)), .close)
+
+        [-57, -57, -85].enumerated().forEach { offset, rssi in
+            stabilizer.update(rssi: rssi, at: start.addingTimeInterval(Double(offset + 2)))
+        }
+
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(5)), .close)
+    }
+
+    func testOneStepChangeRequiresThreeConsecutiveCandidates() {
+        let stabilizer = ProximityStabilizer(historyCapacity: 1, minimumUpdateInterval: 0)
+        let start = Date(timeIntervalSince1970: 11_000)
+
+        [-57, -57].enumerated().forEach { offset, rssi in
+            stabilizer.update(rssi: rssi, at: start.addingTimeInterval(Double(offset)))
+        }
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(2)), .close)
+
+        [-66, -66].enumerated().forEach { offset, rssi in
+            stabilizer.update(rssi: rssi, at: start.addingTimeInterval(Double(offset + 2)))
+        }
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(4)), .close)
+
+        stabilizer.update(rssi: -66, at: start.addingTimeInterval(5))
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(5)), .nearby)
+    }
+
+    func testLargeChangeRequiresTwoConsecutiveCandidates() {
+        let stabilizer = ProximityStabilizer(historyCapacity: 1, minimumUpdateInterval: 0)
+        let start = Date(timeIntervalSince1970: 12_000)
+
+        [-57, -57].enumerated().forEach { offset, rssi in
+            stabilizer.update(rssi: rssi, at: start.addingTimeInterval(Double(offset)))
+        }
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(2)), .close)
+
+        stabilizer.update(rssi: -76, at: start.addingTimeInterval(2))
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(2)), .close)
+
+        stabilizer.update(rssi: -76, at: start.addingTimeInterval(3))
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(3)), .far)
+    }
+
+    func testVisibleUpdatesAreDebounced() {
+        let stabilizer = ProximityStabilizer(historyCapacity: 1, minimumUpdateInterval: 2)
+        let start = Date(timeIntervalSince1970: 13_000)
+
+        [-57, -57].enumerated().forEach { offset, rssi in
+            stabilizer.update(rssi: rssi, at: start.addingTimeInterval(Double(offset)))
+        }
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(1)), .close)
+
+        stabilizer.update(rssi: -76, at: start.addingTimeInterval(1.2))
+        stabilizer.update(rssi: -76, at: start.addingTimeInterval(1.4))
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(1.4)), .close)
+
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(3.1)), .far)
+    }
+
+    func testBriefDetectionGapKeepsCurrentStateThenGoesOffline() {
+        let stabilizer = ProximityStabilizer(historyCapacity: 1, minimumUpdateInterval: 0)
+        let start = Date(timeIntervalSince1970: 14_000)
+
+        [-57, -57].enumerated().forEach { offset, rssi in
+            stabilizer.update(rssi: rssi, at: start.addingTimeInterval(Double(offset)))
+        }
+
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(7)), .close)
+        XCTAssertEqual(stabilizer.currentProximity(at: start.addingTimeInterval(10)), .offline)
     }
 }

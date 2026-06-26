@@ -37,7 +37,7 @@ private struct ClusterCard: View {
         }
     }
 
-    /// Devices in the cluster split into known (named) and unknown groups.
+    /// Devices in the cluster split into named and unnamed groups.
     private var deviceGroups: (known: [(id: String, name: String)], unknownCount: Int) {
         var known: [(id: String, name: String)] = []
         var unknownCount = 0
@@ -46,7 +46,7 @@ private struct ClusterCard: View {
             guard let device = appState.device(id: deviceId) else { continue }
             let name = device.localAlias ?? device.displayName
 
-            if let name, name != "Unknown BLE Device" {
+            if let name, name != "Unknown BLE Device", name != "-" {
                 known.append((id: deviceId, name: name))
             } else {
                 unknownCount += 1
@@ -88,12 +88,12 @@ private struct ClusterCard: View {
                     }
                 }
 
-                // Collapse all unknown devices into a single summary row.
+                // Collapse all unnamed devices into a single summary row.
                 if deviceGroups.unknownCount > 0 {
                     HStack {
                         Image(systemName: "dot.radiowaves.forward")
                             .foregroundStyle(.secondary)
-                        Text("Unknown Devices (\(deviceGroups.unknownCount))")
+                        Text("- Devices (\(deviceGroups.unknownCount))")
                             .foregroundStyle(.secondary)
                     }
                 }

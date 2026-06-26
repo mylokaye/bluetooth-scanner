@@ -8,6 +8,7 @@ final class AppState: ObservableObject {
     @Published private(set) var sessions: [ScanSession] = []
     @Published private(set) var clusters: [DeviceCluster] = []
     @Published private(set) var knownDeviceCategorySummaries: [KnownDeviceCategorySummary] = []
+    @Published private(set) var knownDeviceManufacturerSummaries: [KnownDeviceManufacturerSummary] = []
     @Published var lastStorageError: String?
 
     let scanner = BluetoothScannerService()
@@ -28,15 +29,20 @@ final class AppState: ObservableObject {
     private var pendingClusterRebuildTask: Task<Void, Never>?
     private var pendingLiveOverviewTask: Task<Void, Never>?
     private var distanceEstimators: [String: BLEDistanceEstimator] = [:]
+    private var lastDistanceSnapshots: [String: BLEDistanceSnapshot] = [:]
+    private var proximityStabilizers: [String: ProximityStabilizer] = [:]
     private var deviceIndex: [String: Int] = [:]  // deviceId → index in devices array
+    private var observationsByDevice: [String: [ScanObservation]] = [:]
+    private var latestObservationByDevice: [String: ScanObservation] = [:]
+    private var classificationByDevice: [String: DetectedDeviceClassification] = [:]
     private var trackedDeviceIds: Set<String> = [] // devices whose detail view is currently open
     private let maximumStoredObservations = 5_000
 
     // Activity-status thresholds (seconds). A device seen within the online
     // threshold is "Online"; seen within the recently-seen threshold but
     // outside the online window is "Recently Seen"; everything else is "Offline".
-    private let activityStatusOnlineThreshold: TimeInterval = 15
-    private let activityStatusRecentlySeenThreshold: TimeInterval = 300
+    private let activityStatusOnlineThreshold: TimeInterval = 8
+    private let activityStatusRecentlySeenThreshold: TimeInterval = 30
 
     init() {
         scanner.onObservation = { [weak self] observation, device in
@@ -60,7 +66,9 @@ final class AppState: ObservableObject {
             sessions = snapshot.sessions
             sessionService.restore(sessions: snapshot.sessions)
             rebuildDeviceIndex()
-            rebuildClusters()
+            rebuildObservationIndexes()
+            classificationByDevice = [:]
+            await rebuildClusters()
             rebuildLiveOverview()
         } catch {
             lastStorageError = error.localizedDescription
@@ -76,11 +84,11 @@ final class AppState: ObservableObject {
         scanner.stopScanning()
         sessions = sessionService.endCurrentSession()
         pendingClusterRebuildTask?.cancel()
-        rebuildClusters()
-        rebuildLiveOverview()
         pendingSaveTask?.cancel()
-        Task {
-            await save()
+        Task { @MainActor [weak self] in
+            await self?.rebuildClusters()
+            self?.rebuildLiveOverview()
+            await self?.save()
         }
     }
 
@@ -94,8 +102,14 @@ final class AppState: ObservableObject {
         sessions = []
         clusters = []
         knownDeviceCategorySummaries = []
+        knownDeviceManufacturerSummaries = []
         distanceEstimators = [:]
+        lastDistanceSnapshots = [:]
+        proximityStabilizers = [:]
         deviceIndex = [:]
+        observationsByDevice = [:]
+        latestObservationByDevice = [:]
+        classificationByDevice = [:]
         trackedDeviceIds = []
         sessionService.reset()
 
@@ -109,10 +123,14 @@ final class AppState: ObservableObject {
         devices[index].isIgnored = true
         scanner.ignoreDevice(id: device.id)
         distanceEstimators[device.id] = nil
+        lastDistanceSnapshots[device.id] = nil
+        proximityStabilizers[device.id] = nil
         pendingClusterRebuildTask?.cancel()
-        rebuildClusters()
-        rebuildLiveOverview()
-        scheduleSave()
+        pendingClusterRebuildTask = Task { @MainActor [weak self] in
+            await self?.rebuildClusters()
+            self?.rebuildLiveOverview()
+            self?.scheduleSave()
+        }
     }
 
     func device(id: String) -> BluetoothDevice? {
@@ -123,9 +141,11 @@ final class AppState: ObservableObject {
     }
 
     func observations(for deviceId: String) -> [ScanObservation] {
-        observations
-            .filter { $0.deviceId == deviceId }
-            .sorted { $0.timestamp > $1.timestamp }
+        observationsByDevice[deviceId] ?? []
+    }
+
+    func latestObservation(for deviceId: String) -> ScanObservation? {
+        latestObservationByDevice[deviceId]
     }
 
     func liveRSSI(for deviceId: String) -> Int? {
@@ -133,11 +153,23 @@ final class AppState: ObservableObject {
     }
 
     func distanceCategory(for deviceId: String) -> DistanceCategory {
-        DistanceCategory(rssi: liveRSSI(for: deviceId) ?? observations(for: deviceId).first?.rssi)
+        DistanceCategory(rssi: liveRSSI(for: deviceId) ?? latestObservationByDevice[deviceId]?.rssi)
     }
 
     func distanceSnapshot(for deviceId: String, at date: Date = Date()) -> BLEDistanceSnapshot {
-        estimator(for: deviceId).snapshot(at: date)
+        seedDistanceEstimatorIfNeeded(for: deviceId)
+
+        let snapshot = estimator(for: deviceId).snapshot(at: date)
+        if snapshot.isAvailable {
+            lastDistanceSnapshots[deviceId] = snapshot
+            return snapshot
+        }
+
+        if !scanner.isScanning, let cachedSnapshot = lastDistanceSnapshots[deviceId] {
+            return cachedSnapshot
+        }
+
+        return snapshot
     }
 
     func activityStatus(for deviceId: String, at date: Date = Date()) -> ActivityStatus {
@@ -159,48 +191,71 @@ final class AppState: ObservableObject {
         trackedDeviceIds.insert(deviceId)
         if let rssi = scanner.liveRSSI[deviceId] {
             estimator(for: deviceId).update(rssi: rssi)
+            proximityStabilizer(for: deviceId).update(rssi: rssi)
         }
     }
 
     /// Stops active distance tracking for a device (called when its detail view disappears).
-    /// The estimator and its cached snapshot are preserved so re-opening the detail view
+    /// The estimators and their cached snapshots are preserved so re-opening the detail view
     /// continues from the last-known state.
     func stopTrackingDistance(for deviceId: String) {
         trackedDeviceIds.remove(deviceId)
     }
 
-    func devices(in category: DeviceCategory) -> [BluetoothDevice] {
-        let observationsByDevice = Dictionary(grouping: observations, by: \.deviceId)
+    /// Returns the stabilised proximity state for a device.
+    ///
+    /// The state is computed from a rolling median of the last 7 RSSI readings,
+    /// passed through hysteresis, persistence filtering, and 2-second debouncing.
+    /// See `ProximityStabilizer` for the full pipeline.
+    func stabilizedProximity(for deviceId: String, at date: Date = Date()) -> ProximityState {
+        proximityStabilizer(for: deviceId).currentProximity(at: date)
+    }
 
+    func devices(in category: DeviceCategory) -> [BluetoothDevice] {
         return devices
             .filter { !$0.isIgnored }
             .filter { device in
-                classification(for: device, observations: observationsByDevice[device.id] ?? []).category == category
+                let classification = classification(for: device)
+                return classification.category == category && shouldAppearInCategoryOverview(classification)
             }
-            .sorted { $0.lastSeen > $1.lastSeen }
+            .sortedByDeviceIdentifier()
     }
 
     func devices(inKnownCategory categoryName: String) -> [BluetoothDevice] {
-        let observationsByDevice = Dictionary(grouping: observations, by: \.deviceId)
-
         return devices
             .filter { !$0.isIgnored }
             .filter { device in
-                classification(
-                    for: device,
-                    observations: observationsByDevice[device.id] ?? []
-                ).categoryName == categoryName
+                let classification = classification(for: device)
+                return classification.categoryName == categoryName && shouldAppearInCategoryOverview(classification)
             }
-            .sorted { $0.lastSeen > $1.lastSeen }
+            .sortedByDeviceIdentifier()
+    }
+
+    func devices(forKnownManufacturer manufacturerName: String) -> [BluetoothDevice] {
+        return devices
+            .filter { !$0.isIgnored }
+            .filter { device in
+                let classification = classification(for: device)
+                return manufacturerDisplayName(for: classification) == manufacturerName
+            }
+            .sortedByDeviceIdentifier()
     }
 
     func classification(for device: BluetoothDevice) -> DetectedDeviceClassification {
-        let deviceObservations = observations(for: device.id)
-        return classification(for: device, observations: deviceObservations)
+        if let classification = classificationByDevice[device.id] {
+            return classification
+        }
+
+        let classification = classification(
+            for: device,
+            observations: observationsByDevice[device.id] ?? []
+        )
+        classificationByDevice[device.id] = classification
+        return classification
     }
 
     private func classification(for device: BluetoothDevice, observations deviceObservations: [ScanObservation]) -> DetectedDeviceClassification {
-        let latestObservations = deviceObservations.sorted { $0.timestamp > $1.timestamp }
+        let latestObservations = deviceObservations
         let latestManufacturerIdentifier = latestObservations.lazy.compactMap(\.manufacturerIdentifier).first
         let latestAppearanceValue = latestObservations.lazy.compactMap(\.appearanceValue).first
         let snapshot = BluetoothAdvertisementSnapshot(
@@ -215,14 +270,12 @@ final class AppState: ObservableObject {
 
     private func record(observation: ScanObservation, device incomingDevice: BluetoothDevice) async {
         let device = merge(device: incomingDevice)
-
-        // Only update the distance estimator when the device detail view is
-        // currently open — avoids wasted computation for off-screen devices.
-        if trackedDeviceIds.contains(device.id) {
-            estimator(for: device.id).update(rssi: observation.rssi, at: observation.timestamp)
-        }
+        updateDistanceCache(for: device.id, rssi: observation.rssi, at: observation.timestamp)
+        proximityStabilizer(for: device.id).update(rssi: observation.rssi, at: observation.timestamp)
 
         observations.append(observation)
+        appendObservationIndex(observation)
+        classificationByDevice[device.id] = nil
         trimStoredObservationsIfNeeded()
         sessionService.record(deviceId: device.id, at: observation.timestamp)
         sessions = sessionService.sessions
@@ -245,8 +298,8 @@ final class AppState: ObservableObject {
         }
     }
 
-    private func rebuildClusters() {
-        clusters = clusterService.detectClusters(
+    private func rebuildClusters() async {
+        clusters = await clusterService.detectClustersAsync(
             devices: devices,
             observations: observations,
             sessions: sessions
@@ -259,6 +312,22 @@ final class AppState: ObservableObject {
         )
     }
 
+    private func rebuildObservationIndexes() {
+        observationsByDevice = Dictionary(grouping: observations, by: \.deviceId)
+            .mapValues { observations in
+                observations.sorted { $0.timestamp > $1.timestamp }
+            }
+
+        latestObservationByDevice = observationsByDevice.compactMapValues(\.first)
+    }
+
+    private func appendObservationIndex(_ observation: ScanObservation) {
+        var deviceObservations = observationsByDevice[observation.deviceId] ?? []
+        deviceObservations.insert(observation, at: 0)
+        observationsByDevice[observation.deviceId] = deviceObservations
+        latestObservationByDevice[observation.deviceId] = observation
+    }
+
     private func estimator(for deviceId: String) -> BLEDistanceEstimator {
         if let estimator = distanceEstimators[deviceId] {
             return estimator
@@ -267,6 +336,37 @@ final class AppState: ObservableObject {
         let estimator = BLEDistanceEstimator()
         distanceEstimators[deviceId] = estimator
         return estimator
+    }
+
+    private func proximityStabilizer(for deviceId: String) -> ProximityStabilizer {
+        if let stabilizer = proximityStabilizers[deviceId] {
+            return stabilizer
+        }
+
+        let stabilizer = ProximityStabilizer()
+        proximityStabilizers[deviceId] = stabilizer
+        return stabilizer
+    }
+
+    private func seedDistanceEstimatorIfNeeded(for deviceId: String) {
+        guard lastDistanceSnapshots[deviceId] == nil,
+              let latestObservation = latestObservationByDevice[deviceId]
+        else { return }
+
+        updateDistanceCache(
+            for: deviceId,
+            rssi: latestObservation.rssi,
+            at: latestObservation.timestamp
+        )
+    }
+
+    private func updateDistanceCache(for deviceId: String, rssi: Int, at date: Date) {
+        let estimator = estimator(for: deviceId)
+        estimator.update(rssi: rssi, at: date)
+        let snapshot = estimator.snapshot(at: date)
+        if snapshot.isAvailable {
+            lastDistanceSnapshots[deviceId] = snapshot
+        }
     }
 
     private func scheduleLiveOverviewRebuild() {
@@ -283,13 +383,15 @@ final class AppState: ObservableObject {
         pendingClusterRebuildTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(3))
             guard !Task.isCancelled else { return }
-            self?.rebuildClusters()
+            await self?.rebuildClusters()
         }
     }
 
     private func trimStoredObservationsIfNeeded() {
         guard observations.count > maximumStoredObservations else { return }
         observations.removeFirst(observations.count - maximumStoredObservations)
+        rebuildObservationIndexes()
+        classificationByDevice = [:]
     }
 
     private func rebuildLiveOverview() {
@@ -299,34 +401,21 @@ final class AppState: ObservableObject {
 
         guard !visibleDevices.isEmpty else {
             knownDeviceCategorySummaries = []
+            knownDeviceManufacturerSummaries = []
             return
         }
-
-        let observationsByDevice = Dictionary(grouping: observations, by: \.deviceId)
-
-        // Precompute classification for every visible device once, so we avoid
-        // repeated calls to the classifier inside both grouping closures below.
-        let classificationByDevice: [String: DetectedDeviceClassification] = Dictionary(
-            uniqueKeysWithValues: visibleDevices.map { device in
-                (device.id, classification(for: device, observations: observationsByDevice[device.id] ?? []))
-            }
-        )
-
         let classifiedDevices = visibleDevices.map { device in
             (
                 device: device,
-                classification: classificationByDevice[device.id] ?? DetectedDeviceClassification(
-                    manufacturer: nil,
-                    appearance: nil,
-                    category: .unknown,
-                    likelyProduct: nil,
-                    confidence: 0,
-                    evidence: []
-                )
+                classification: classification(for: device)
             )
         }
 
-        let devicesByKnownCategory = Dictionary(grouping: classifiedDevices) { item in
+        let categoryVisibleDevices = classifiedDevices.filter { item in
+            shouldAppearInCategoryOverview(item.classification)
+        }
+
+        let devicesByKnownCategory = Dictionary(grouping: categoryVisibleDevices) { item in
             item.classification.categoryName
         }
 
@@ -340,14 +429,42 @@ final class AppState: ObservableObject {
                 )
             }
             .sorted {
-                // Always push "Unknown" to the bottom.
-                if $0.categoryName == "Unknown" { return false }
-                if $1.categoryName == "Unknown" { return true }
+                // Always push unavailable categories to the bottom.
+                if $0.categoryName == "-" { return false }
+                if $1.categoryName == "-" { return true }
                 if $0.count == $1.count {
                     return $0.categoryName < $1.categoryName
                 }
                 return $0.count > $1.count
             }
+
+        let devicesByKnownManufacturer = Dictionary(grouping: classifiedDevices) { item in
+            manufacturerDisplayName(for: item.classification)
+        }
+
+        knownDeviceManufacturerSummaries = devicesByKnownManufacturer
+            .map { manufacturerName, items in
+                KnownDeviceManufacturerSummary(
+                    manufacturerName: manufacturerName,
+                    count: items.count
+                )
+            }
+            .sorted {
+                if $0.manufacturerName == "-" { return false }
+                if $1.manufacturerName == "-" { return true }
+                if $0.count == $1.count {
+                    return $0.manufacturerName < $1.manufacturerName
+                }
+                return $0.count > $1.count
+            }
+    }
+
+    private func manufacturerDisplayName(for classification: DetectedDeviceClassification) -> String {
+        classification.manufacturerName ?? "-"
+    }
+
+    private func shouldAppearInCategoryOverview(_ classification: DetectedDeviceClassification) -> Bool {
+        classification.category != .unknown || classification.manufacturerName == nil
     }
 
     private func preferredLocalName(for device: BluetoothDevice) -> String? {
@@ -359,7 +476,7 @@ final class AppState: ObservableObject {
             return advertisedName
         }
 
-        if let displayName = device.displayName, displayName != "Unknown BLE Device" {
+        if let displayName = device.displayName, displayName != "Unknown BLE Device", displayName != "-" {
             return displayName
         }
 
@@ -400,4 +517,19 @@ final class AppState: ObservableObject {
         }
     }
 
+}
+
+private extension Array where Element == BluetoothDevice {
+    func sortedByDeviceIdentifier() -> [BluetoothDevice] {
+        sorted {
+            let lhs = $0.id.replacingOccurrences(of: "-", with: "").uppercased()
+            let rhs = $1.id.replacingOccurrences(of: "-", with: "").uppercased()
+
+            if lhs == rhs {
+                return ($0.displayName ?? "") < ($1.displayName ?? "")
+            }
+
+            return lhs < rhs
+        }
+    }
 }

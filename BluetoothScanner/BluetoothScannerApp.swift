@@ -19,6 +19,7 @@ struct AppView: View {
     enum Tab {
         case live
         case groups
+        case settings
     }
 
     @State private var selectedTab: Tab = .live
@@ -40,6 +41,14 @@ struct AppView: View {
                 Label("Groups", systemImage: "rectangle.3.group")
             }
             .tag(Tab.groups)
+
+            NavigationStack {
+                SettingsView()
+            }
+            .tabItem {
+                Label("Settings", systemImage: "gearshape")
+            }
+            .tag(Tab.settings)
         }
     }
 }

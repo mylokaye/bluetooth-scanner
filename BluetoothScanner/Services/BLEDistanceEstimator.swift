@@ -4,7 +4,7 @@ enum Proximity: String {
     case near = "Near"
     case far = "Far"
     case veryFar = "Very Far"
-    case unavailable = "Unavailable"
+    case unavailable = "-"
 }
 
 struct BLEDistanceSnapshot: Hashable {
@@ -15,7 +15,7 @@ struct BLEDistanceSnapshot: Hashable {
     let isAvailable: Bool
 
     var distanceText: String {
-        guard let estimatedDistance else { return "Unknown" }
+        guard let estimatedDistance else { return "-" }
         if estimatedDistance >= BLEDistanceEstimator.maximumDistance {
             return "20m+"
         }

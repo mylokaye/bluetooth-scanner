@@ -1,6 +1,6 @@
 import Foundation
 
-struct BluetoothAppearance: Codable, Identifiable, Hashable {
+struct BluetoothAppearance: Codable, Identifiable, Hashable, Sendable {
     let appearanceId: Int
     let appearanceIdHex: String
     let category: String

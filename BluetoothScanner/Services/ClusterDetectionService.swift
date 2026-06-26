@@ -1,7 +1,21 @@
 import CryptoKit
 import Foundation
 
-struct ClusterDetectionService {
+struct ClusterDetectionService: Sendable {
+    func detectClustersAsync(
+        devices: [BluetoothDevice],
+        observations: [ScanObservation],
+        sessions: [ScanSession]
+    ) async -> [DeviceCluster] {
+        await Task.detached(priority: .utility) {
+            detectClusters(
+                devices: devices,
+                observations: observations,
+                sessions: sessions
+            )
+        }.value
+    }
+
     func detectClusters(
         devices: [BluetoothDevice],
         observations: [ScanObservation],
@@ -154,7 +168,7 @@ struct ClusterDetectionService {
     }
 
     private func displayName(_ device: BluetoothDevice) -> String {
-        device.localAlias ?? device.displayName ?? device.advertisedName ?? "Unknown BLE Device"
+        device.localAlias ?? device.displayName ?? device.advertisedName ?? "-"
     }
 
     private func stableClusterId(deviceIds: [String]) -> UUID {

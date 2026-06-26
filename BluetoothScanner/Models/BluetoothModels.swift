@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-struct BluetoothDevice: Identifiable, Codable, Hashable {
+struct BluetoothDevice: Identifiable, Codable, Hashable, Sendable {
     let id: String
     var displayName: String?
     var advertisedName: String?
@@ -12,7 +12,7 @@ struct BluetoothDevice: Identifiable, Codable, Hashable {
     var localAlias: String?
 }
 
-struct ScanObservation: Identifiable, Codable, Hashable {
+struct ScanObservation: Identifiable, Codable, Hashable, Sendable {
     let id: UUID
     let deviceId: String
     let timestamp: Date
@@ -25,14 +25,14 @@ struct ScanObservation: Identifiable, Codable, Hashable {
     let txPower: Int?
 }
 
-struct ScanSession: Identifiable, Codable, Hashable {
+struct ScanSession: Identifiable, Codable, Hashable, Sendable {
     let id: UUID
     let startedAt: Date
     var endedAt: Date?
     var deviceIds: Set<String>
 }
 
-struct DeviceCluster: Identifiable, Codable, Hashable {
+struct DeviceCluster: Identifiable, Codable, Hashable, Sendable {
     let id: UUID
     var deviceIds: [String]
     var clusterType: ClusterType
@@ -44,23 +44,23 @@ struct DeviceCluster: Identifiable, Codable, Hashable {
     var reasons: [String]
 }
 
-enum ClusterType: String, Codable {
+enum ClusterType: String, Codable, Sendable {
     case singleDevice
     case commonlySeenTogether
 }
 
-enum ConfidenceLabel: String, Codable {
+enum ConfidenceLabel: String, Codable, Sendable {
     case low
     case medium
     case high
 }
 
-enum DistanceCategory: String {
+enum DistanceCategory: String, Sendable {
     case close = "Close"
     case nearby = "Nearby"
     case far = "Far"
     case weak = "Weak"
-    case unknown = "Unknown"
+    case unknown = "-"
 
     init(rssi: Int?) {
         guard let rssi else {
@@ -81,7 +81,7 @@ enum DistanceCategory: String {
     }
 }
 
-struct DeviceCategorySummary: Identifiable, Hashable {
+struct DeviceCategorySummary: Identifiable, Hashable, Sendable {
     let category: DeviceCategory
     let count: Int
     let lastSeen: Date?
@@ -89,7 +89,9 @@ struct DeviceCategorySummary: Identifiable, Hashable {
     var id: DeviceCategory { category }
 }
 
-struct AppDataSnapshot: Codable {
+// MARK: - Persistence
+
+struct AppDataSnapshot: Codable, Sendable {
     var devices: [BluetoothDevice]
     var observations: [ScanObservation]
     var sessions: [ScanSession]
@@ -99,7 +101,7 @@ struct AppDataSnapshot: Codable {
 
 // MARK: - Activity Status
 
-enum ActivityStatus: String, CaseIterable {
+enum ActivityStatus: String, CaseIterable, Sendable {
     case online
     case recentlySeen
     case offline

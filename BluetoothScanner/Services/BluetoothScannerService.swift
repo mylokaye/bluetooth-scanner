@@ -4,7 +4,7 @@ import Foundation
 @MainActor
 final class BluetoothScannerService: NSObject, ObservableObject {
     @Published private(set) var authorizationMessage = "Bluetooth permission has not been requested yet."
-    @Published private(set) var bluetoothState = "Unknown"
+    @Published private(set) var bluetoothState = "-"
     @Published private(set) var isScanning = false
     @Published private(set) var liveDevices: [BluetoothDevice] = []
     @Published private(set) var liveRSSI: [String: Int] = [:]
@@ -14,6 +14,7 @@ final class BluetoothScannerService: NSObject, ObservableObject {
     private var centralManager: CBCentralManager?
     private var ignoredDeviceIds: Set<String> = []
     private var lastEmissionByDeviceId: [String: (date: Date, rssi: Int)] = [:]
+    private var liveDeviceIndexById: [String: Int] = [:]
     private let minimumDuplicateEmissionInterval: TimeInterval = 1
     private let minimumRSSIDeltaForImmediateEmission = 6
 
@@ -34,6 +35,7 @@ final class BluetoothScannerService: NSObject, ObservableObject {
 
         liveDevices = []
         liveRSSI = [:]
+        liveDeviceIndexById = [:]
         lastEmissionByDeviceId = [:]
         isScanning = true
         centralManager.scanForPeripherals(
@@ -51,13 +53,14 @@ final class BluetoothScannerService: NSObject, ObservableObject {
         stopScanning()
         liveDevices = []
         liveRSSI = [:]
+        liveDeviceIndexById = [:]
         ignoredDeviceIds = []
         lastEmissionByDeviceId = [:]
     }
 
     func ignoreDevice(id: String) {
         ignoredDeviceIds.insert(id)
-        liveDevices.removeAll { $0.id == id }
+        removeLiveDevice(id: id)
         liveRSSI[id] = nil
     }
 
@@ -72,14 +75,14 @@ final class BluetoothScannerService: NSObject, ObservableObject {
         case .notDetermined:
             authorizationMessage = "Bluetooth permission will be requested when scanning starts."
         @unknown default:
-            authorizationMessage = "Bluetooth permission state is unknown."
+            authorizationMessage = "Bluetooth permission state: -"
         }
     }
 
     private func stateDescription(_ state: CBManagerState) -> String {
         switch state {
         case .unknown:
-            return "Unknown"
+            return "-"
         case .resetting:
             return "Resetting"
         case .unsupported:
@@ -91,7 +94,7 @@ final class BluetoothScannerService: NSObject, ObservableObject {
         case .poweredOn:
             return "Powered on"
         @unknown default:
-            return "Unknown"
+            return "-"
         }
     }
 }
@@ -129,9 +132,9 @@ extension BluetoothScannerService: CBCentralManagerDelegate {
 
             let device = BluetoothDevice(
                 id: deviceId,
-                displayName: advertisedName ?? peripheral.name ?? "Unknown BLE Device",
+                displayName: advertisedName ?? peripheral.name ?? "-",
                 advertisedName: advertisedName,
-                firstSeen: liveDevices.first(where: { $0.id == deviceId })?.firstSeen ?? timestamp,
+                firstSeen: liveDevice(id: deviceId)?.firstSeen ?? timestamp,
                 lastSeen: timestamp,
                 isIgnored: false,
                 isMyDevice: false,
@@ -142,11 +145,7 @@ extension BluetoothScannerService: CBCentralManagerDelegate {
             guard shouldEmit else { return }
 
             liveRSSI[deviceId] = rssi
-            if let index = liveDevices.firstIndex(where: { $0.id == deviceId }) {
-                liveDevices[index] = device
-            } else {
-                liveDevices.append(device)
-            }
+            upsertLiveDevice(device)
 
             let observation = ScanObservation(
                 id: UUID(),
@@ -180,6 +179,32 @@ extension BluetoothScannerService: CBCentralManagerDelegate {
         }
 
         return shouldEmit
+    }
+
+    private func liveDevice(id: String) -> BluetoothDevice? {
+        guard let index = liveDeviceIndexById[id] else { return nil }
+        return liveDevices[index]
+    }
+
+    private func upsertLiveDevice(_ device: BluetoothDevice) {
+        if let index = liveDeviceIndexById[device.id] {
+            liveDevices[index] = device
+        } else {
+            liveDeviceIndexById[device.id] = liveDevices.count
+            liveDevices.append(device)
+        }
+    }
+
+    private func removeLiveDevice(id: String) {
+        guard let removedIndex = liveDeviceIndexById.removeValue(forKey: id) else {
+            return
+        }
+
+        liveDevices.remove(at: removedIndex)
+
+        for index in removedIndex..<liveDevices.count {
+            liveDeviceIndexById[liveDevices[index].id] = index
+        }
     }
 
     private static func manufacturerSummary(_ data: Data) -> String {

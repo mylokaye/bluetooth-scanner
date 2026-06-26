@@ -21,6 +21,7 @@
 		2A00010C2C2CC00100000001 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00020C2C2CC00100000001 /* PreviewData.swift */; };
 		2A00010D2C2CC00100000001 /* UDIDCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00020D2C2CC00100000001 /* UDIDCatalog.swift */; };
 		2A0001112C2CC00100000001 /* BLEDistanceEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002112C2CC00100000001 /* BLEDistanceEstimator.swift */; };
+		2A00010E2C2CC00100000001 /* ProximityStabilizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00020E2C2CC00100000001 /* ProximityStabilizer.swift */; };
 		2A0001122C2CC00100000001 /* BLEDistanceEstimatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002122C2CC00100000001 /* BLEDistanceEstimatorTests.swift */; };
 		2A0001132C2CC00100000001 /* BluetoothManufacturer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002132C2CC00100000001 /* BluetoothManufacturer.swift */; };
 		2A0001142C2CC00100000001 /* BluetoothAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002142C2CC00100000001 /* BluetoothAppearance.swift */; };
@@ -28,8 +29,7 @@
 		2A0001162C2CC00100000001 /* ManufacturerLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002162C2CC00100000001 /* ManufacturerLookup.swift */; };
 		2A0001172C2CC00100000001 /* AppearanceLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002172C2CC00100000001 /* AppearanceLookup.swift */; };
 		2A0001182C2CC00100000001 /* DeviceClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002182C2CC00100000001 /* DeviceClassifier.swift */; };
-		2A0001192C2CC00100000001 /* bluetooth_manufacturers.json in Resources */ = {isa = PBXBuildFile; fileRef = 2A0002192C2CC00100000001 /* bluetooth_manufacturers.json */; };
-		2A00011A2C2CC00100000001 /* bluetooth_appearances.json in Resources */ = {isa = PBXBuildFile; fileRef = 2A00021A2C2CC00100000001 /* bluetooth_appearances.json */; };
+		2A0001192C2CC00100000001 /* data in Resources */ = {isa = PBXBuildFile; fileRef = 2A0002192C2CC00100000001 /* data */; };
 		2A00011B2C2CC00100000001 /* DeviceClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00021B2C2CC00100000001 /* DeviceClassifierTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -60,6 +60,7 @@
 		2A00020C2C2CC00100000001 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
 		2A00020D2C2CC00100000001 /* UDIDCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDIDCatalog.swift; sourceTree = "<group>"; };
 		2A0002112C2CC00100000001 /* BLEDistanceEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDistanceEstimator.swift; sourceTree = "<group>"; };
+		2A00020E2C2CC00100000001 /* ProximityStabilizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProximityStabilizer.swift; sourceTree = "<group>"; };
 		2A0002122C2CC00100000001 /* BLEDistanceEstimatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDistanceEstimatorTests.swift; sourceTree = "<group>"; };
 		2A0002132C2CC00100000001 /* BluetoothManufacturer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothManufacturer.swift; sourceTree = "<group>"; };
 		2A0002142C2CC00100000001 /* BluetoothAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothAppearance.swift; sourceTree = "<group>"; };
@@ -67,8 +68,7 @@
 		2A0002162C2CC00100000001 /* ManufacturerLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManufacturerLookup.swift; sourceTree = "<group>"; };
 		2A0002172C2CC00100000001 /* AppearanceLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceLookup.swift; sourceTree = "<group>"; };
 		2A0002182C2CC00100000001 /* DeviceClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceClassifier.swift; sourceTree = "<group>"; };
-		2A0002192C2CC00100000001 /* bluetooth_manufacturers.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = bluetooth_manufacturers.json; sourceTree = "<group>"; };
-		2A00021A2C2CC00100000001 /* bluetooth_appearances.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = bluetooth_appearances.json; sourceTree = "<group>"; };
+		2A0002192C2CC00100000001 /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = data; sourceTree = "<group>"; };
 		2A00021B2C2CC00100000001 /* DeviceClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceClassifierTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -142,6 +142,7 @@
 				2A0002072C2CC00100000001 /* SessionService.swift */,
 				2A00020D2C2CC00100000001 /* UDIDCatalog.swift */,
 				2A0002112C2CC00100000001 /* BLEDistanceEstimator.swift */,
+				2A00020E2C2CC00100000001 /* ProximityStabilizer.swift */,
 				2A0002162C2CC00100000001 /* ManufacturerLookup.swift */,
 				2A0002172C2CC00100000001 /* AppearanceLookup.swift */,
 				2A0002182C2CC00100000001 /* DeviceClassifier.swift */,
@@ -180,8 +181,7 @@
 		2A0004092C2CC00100000001 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				2A0002192C2CC00100000001 /* bluetooth_manufacturers.json */,
-				2A00021A2C2CC00100000001 /* bluetooth_appearances.json */,
+				2A0002192C2CC00100000001 /* data */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -267,8 +267,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2A0001192C2CC00100000001 /* bluetooth_manufacturers.json in Resources */,
-				2A00011A2C2CC00100000001 /* bluetooth_appearances.json in Resources */,
+				2A0001192C2CC00100000001 /* data in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -303,6 +302,7 @@
 				2A00010C2C2CC00100000001 /* PreviewData.swift in Sources */,
 				2A00010D2C2CC00100000001 /* UDIDCatalog.swift in Sources */,
 				2A0001112C2CC00100000001 /* BLEDistanceEstimator.swift in Sources */,
+				2A00010E2C2CC00100000001 /* ProximityStabilizer.swift in Sources */,
 				2A0001162C2CC00100000001 /* ManufacturerLookup.swift in Sources */,
 				2A0001172C2CC00100000001 /* AppearanceLookup.swift in Sources */,
 				2A0001182C2CC00100000001 /* DeviceClassifier.swift in Sources */,
@@ -313,7 +313,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2A0001122C2CC00100000001 /* BLEDistanceEstimatorTests.swift in Sources */,
+					2A0001122C2CC00100000001 /* BLEDistanceEstimatorTests.swift in Sources */,
 				2A00011B2C2CC00100000001 /* DeviceClassifierTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

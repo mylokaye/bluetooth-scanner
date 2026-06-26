@@ -1,13 +1,13 @@
 import Foundation
 
-struct BluetoothAdvertisementSnapshot: Hashable {
+struct BluetoothAdvertisementSnapshot: Hashable, Sendable {
     let localName: String?
     let manufacturerCompanyId: Int?
     let appearanceId: Int?
     let serviceUUIDs: [String]
 }
 
-struct DetectedDeviceClassification: Hashable {
+struct DetectedDeviceClassification: Hashable, Sendable {
     let manufacturer: String?
     let appearance: String?
     let category: DeviceCategory
@@ -21,13 +21,13 @@ struct DetectedDeviceClassification: Hashable {
     var symbolName: String { category.symbolName }
 }
 
-struct ClassificationEvidence: Hashable {
+struct ClassificationEvidence: Hashable, Sendable {
     let source: String
     let value: String
     let confidenceContribution: Int
 }
 
-enum DeviceCategory: String, Codable, CaseIterable, Identifiable, Hashable {
+enum DeviceCategory: String, Codable, CaseIterable, Identifiable, Hashable, Sendable {
     case phone
     case watch
     case headphones
@@ -71,7 +71,7 @@ enum DeviceCategory: String, Codable, CaseIterable, Identifiable, Hashable {
         case .lighting:
             return "Lighting"
         case .unknown:
-            return "Unknown"
+            return "-"
         }
     }
 
@@ -138,11 +138,18 @@ enum DeviceCategory: String, Codable, CaseIterable, Identifiable, Hashable {
     }
 }
 
-struct KnownDeviceCategorySummary: Identifiable, Hashable {
+struct KnownDeviceCategorySummary: Identifiable, Hashable, Sendable {
     let categoryName: String
     let symbolName: String
     let count: Int
     let lastSeen: Date?
 
     var id: String { categoryName }
+}
+
+struct KnownDeviceManufacturerSummary: Identifiable, Hashable, Sendable {
+    let manufacturerName: String
+    let count: Int
+
+    var id: String { manufacturerName }
 }
