@@ -97,13 +97,16 @@ enum PreviewData {
         DeviceCluster(
             id: UUID(uuidString: "00000000-0000-0000-0000-000000000301")!,
             deviceIds: [phone.id, watch.id, headphones.id],
+            anchorDeviceId: phone.id,
             clusterType: .commonlySeenTogether,
             confidenceScore: 0.82,
             confidenceLabel: .high,
             seenTogetherCount: 4,
             firstSeen: phone.firstSeen,
             lastSeen: phone.lastSeen,
+            isOwnerGroup: false,
             reasons: ["These devices are commonly seen together."]
         )
     ]
+
 }

@@ -68,7 +68,7 @@ final class AppState: ObservableObject {
             rebuildDeviceIndex()
             rebuildObservationIndexes()
             classificationByDevice = [:]
-            await rebuildClusters()
+            rebuildClusters()
             rebuildLiveOverview()
         } catch {
             lastStorageError = error.localizedDescription
@@ -84,9 +84,10 @@ final class AppState: ObservableObject {
         scanner.stopScanning()
         sessions = sessionService.endCurrentSession()
         pendingClusterRebuildTask?.cancel()
+        pendingClusterRebuildTask = nil
         pendingSaveTask?.cancel()
         Task { @MainActor [weak self] in
-            await self?.rebuildClusters()
+            self?.rebuildClusters()
             self?.rebuildLiveOverview()
             await self?.save()
         }
@@ -95,6 +96,7 @@ final class AppState: ObservableObject {
     func clearScanData() {
         scanner.clearLiveData()
         pendingClusterRebuildTask?.cancel()
+        pendingClusterRebuildTask = nil
         pendingLiveOverviewTask?.cancel()
         pendingSaveTask?.cancel()
         devices = []
@@ -112,6 +114,7 @@ final class AppState: ObservableObject {
         classificationByDevice = [:]
         trackedDeviceIds = []
         sessionService.reset()
+        clusterService.reset()
 
         Task {
             await save()
@@ -280,12 +283,18 @@ final class AppState: ObservableObject {
         }
     }
 
-    private func rebuildClusters() async {
-        clusters = await clusterService.detectClustersAsync(
-            devices: devices,
-            observations: observations,
-            sessions: sessions
+    private func rebuildClusters() {
+        let currentClassifications = Dictionary(
+            uniqueKeysWithValues: devices.map { device in
+                (device.id, classification(for: device))
+            }
         )
+        let result = clusterService.detectClusters(
+            devices: devices,
+            observationsByDevice: observationsByDevice,
+            classificationsByDevice: currentClassifications
+        )
+        clusters = result.clusters
     }
 
     private func rebuildDeviceIndex() {
@@ -361,11 +370,13 @@ final class AppState: ObservableObject {
     }
 
     private func scheduleClusterRebuild() {
-        pendingClusterRebuildTask?.cancel()
+        guard pendingClusterRebuildTask == nil else { return }
+
         pendingClusterRebuildTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(3))
+            try? await Task.sleep(for: .seconds(1))
             guard !Task.isCancelled else { return }
-            await self?.rebuildClusters()
+            self?.pendingClusterRebuildTask = nil
+            self?.rebuildClusters()
         }
     }
 

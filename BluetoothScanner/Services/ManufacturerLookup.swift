@@ -70,30 +70,49 @@ struct ManufacturerLookup {
 }
 
 struct FuzzyManufacturerLookup {
-    static let empty = FuzzyManufacturerLookup(records: [])
+    static let empty = FuzzyManufacturerLookup(records: [], manufacturers: [])
 
     private static let logger = Logger(subsystem: "BluetoothScanner", category: "FuzzyManufacturerLookup")
 
     private let records: [ManufacturerNameMatchRecord]
 
-    init(bundle: Bundle = .main, resourceName: String = "manufacturer_name_matches", subdirectory: String? = "data") {
-        guard let url = bundle.url(forResource: resourceName, withExtension: "json", subdirectory: subdirectory) else {
+    init(
+        bundle: Bundle = .main,
+        resourceName: String = "manufacturer_name_matches",
+        companyResourceName: String = "company_ids",
+        subdirectory: String? = "data"
+    ) {
+        var records: [ManufacturerNameMatchRecord] = []
+
+        if let url = bundle.url(forResource: resourceName, withExtension: "json", subdirectory: subdirectory) {
+            do {
+                let data = try Data(contentsOf: url)
+                records = try JSONDecoder().decode([ManufacturerNameMatchRecord].self, from: data)
+            } catch {
+                Self.logger.error("Failed to load manufacturer name match JSON: \(error.localizedDescription)")
+            }
+        } else {
             Self.logger.error("Missing bundled manufacturer name match JSON resource: \(resourceName).json")
-            self.records = []
-            return
         }
 
-        do {
-            let data = try Data(contentsOf: url)
-            self.records = try JSONDecoder().decode([ManufacturerNameMatchRecord].self, from: data)
-        } catch {
-            Self.logger.error("Failed to load manufacturer name match JSON: \(error.localizedDescription)")
-            self.records = []
+        var manufacturers: [BluetoothManufacturer] = []
+        if let url = bundle.url(forResource: companyResourceName, withExtension: "json", subdirectory: subdirectory) {
+            do {
+                let data = try Data(contentsOf: url)
+                manufacturers = try JSONDecoder().decode([CompanyIdentifierRecord].self, from: data)
+                    .map(BluetoothManufacturer.init(record:))
+            } catch {
+                Self.logger.error("Failed to load manufacturer company JSON: \(error.localizedDescription)")
+            }
+        } else {
+            Self.logger.error("Missing bundled manufacturer company JSON resource: \(companyResourceName).json")
         }
+
+        self.records = Self.makeRecords(records: records, manufacturers: manufacturers)
     }
 
-    init(records: [ManufacturerNameMatchRecord]) {
-        self.records = records
+    init(records: [ManufacturerNameMatchRecord], manufacturers: [BluetoothManufacturer] = []) {
+        self.records = Self.makeRecords(records: records, manufacturers: manufacturers)
     }
 
     func manufacturerName(for deviceName: String?) -> String? {
@@ -101,12 +120,63 @@ struct FuzzyManufacturerLookup {
         let normalizedDeviceName = Self.normalized(deviceName)
         guard !normalizedDeviceName.isEmpty else { return nil }
 
+        let searchableDeviceName = " \(normalizedDeviceName) "
         return records.first { record in
             record.terms.contains { term in
                 let normalizedTerm = Self.normalized(term)
-                return !normalizedTerm.isEmpty && normalizedDeviceName.contains(normalizedTerm)
+                return !normalizedTerm.isEmpty && searchableDeviceName.contains(" \(normalizedTerm) ")
             }
         }?.manufacturer
+    }
+
+    private static func makeRecords(
+        records: [ManufacturerNameMatchRecord],
+        manufacturers: [BluetoothManufacturer]
+    ) -> [ManufacturerNameMatchRecord] {
+        records + manufacturers.compactMap(catalogRecord)
+    }
+
+    private static func catalogRecord(for manufacturer: BluetoothManufacturer) -> ManufacturerNameMatchRecord? {
+        let terms = catalogTerms(for: manufacturer.manufacturer)
+        guard !terms.isEmpty else { return nil }
+
+        return ManufacturerNameMatchRecord(
+            manufacturer: manufacturer.manufacturer,
+            terms: terms
+        )
+    }
+
+    private static func catalogTerms(for manufacturer: String) -> [String] {
+        let withoutParentheticals = manufacturer
+            .replacingOccurrences(of: #"\([^)]*\)"#, with: " ", options: .regularExpression)
+        let splitCandidates = withoutParentheticals
+            .split(separator: ",")
+            .map(String.init)
+        let candidates = ([withoutParentheticals] + splitCandidates)
+            .map(strippingBusinessSuffixes)
+            .map(normalized)
+            .filter(isUsefulCatalogTerm)
+
+        return Array(NSOrderedSet(array: candidates)) as? [String] ?? []
+    }
+
+    private static func strippingBusinessSuffixes(_ value: String) -> String {
+        normalized(value)
+            .replacingOccurrences(
+                of: #"\b(incorporated|inc|limited|ltd|llc|corp|corporation|company|co|gmbh|ag|sa|sas|oy|bv|ab|as|plc|pte|pty|kg|srl|sro|spa|holdings|technology|technologies|electronics|international|industries)\b"#,
+                with: " ",
+                options: .regularExpression
+            )
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func isUsefulCatalogTerm(_ term: String) -> Bool {
+        guard !term.isEmpty else { return false }
+        if term.count >= 4 { return true }
+
+        let allowedShortTerms: Set<String> = ["3com", "avm", "bose", "dji", "hp", "ibm", "jbl", "lg", "nec", "tcl"]
+        return allowedShortTerms.contains(term)
     }
 
     private static func normalized(_ value: String) -> String {

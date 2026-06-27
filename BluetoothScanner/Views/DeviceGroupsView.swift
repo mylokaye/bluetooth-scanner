@@ -4,105 +4,140 @@ struct DeviceGroupsView: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
+        List {
+            Section {
                 ScreenHeader(
                     title: "Groups",
-                    subtitle: "Devices that are often seen together."
+                    subtitle: "Devices whose signal strength moves together."
                 )
-                .padding(.top, 54)
+            }
+            .listRowInsets(EdgeInsets(top: 54, leading: 16, bottom: 0, trailing: 16))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
 
-                if appState.clusters.isEmpty {
+            if appState.clusters.isEmpty {
+                Section {
                     ContentUnavailableView(
                         "No groups",
                         systemImage: "rectangle.3.group",
-                        description: Text("Start scanning to detect groups.")
+                        description: Text("Start scanning to detect correlated devices.")
                     )
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 48)
-                    .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                } else {
-                    VStack(spacing: 12) {
-                        ForEach(Array(appState.clusters.enumerated()), id: \.element.id) { index, cluster in
-                            ClusterCard(index: index + 1, cluster: cluster)
-                        }
+                    .padding(.vertical, 32)
+                }
+                .listRowBackground(Color(.secondarySystemGroupedBackground))
+            } else {
+                Section("Detected") {
+                    ForEach(Array(appState.clusters.enumerated()), id: \.element.id) { index, cluster in
+                        ClusterRow(
+                            index: index + 1,
+                            cluster: cluster,
+                            status: status(for: cluster)
+                        )
                     }
-
-                    HStack(spacing: 8) {
-                        Image(systemName: "info.circle")
-                        Text("Groups are created automatically.")
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 24)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 120)
+
+            Section {
+                HStack(spacing: 8) {
+                    Image(systemName: "info.circle")
+                    Text("Groups update as RSSI samples arrive.")
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .center)
+            }
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
         }
-        .background(Color(.systemGroupedBackground))
         .toolbar(.hidden, for: .navigationBar)
+    }
+
+    private func status(for cluster: DeviceCluster) -> ClusterStatus {
+        if let anchorDeviceId = cluster.anchorDeviceId {
+            let activityStatus = appState.activityStatus(for: anchorDeviceId)
+            let text: String
+            switch activityStatus {
+            case .online:
+                text = "Online"
+            case .recentlySeen, .offline:
+                text = "Last seen \(cluster.lastSeen.formattedRelative())"
+            }
+
+            return ClusterStatus(text: text, color: activityStatus.color)
+        }
+
+        let elapsed = Date().timeIntervalSince(cluster.lastSeen)
+        if elapsed <= 8 {
+            return ClusterStatus(text: "Online", color: .green)
+        } else if elapsed <= 30 {
+            return ClusterStatus(text: "Last seen \(cluster.lastSeen.formattedRelative())", color: .orange)
+        } else {
+            return ClusterStatus(text: "Last seen \(cluster.lastSeen.formattedRelative())", color: .gray)
+        }
     }
 }
 
-private struct ClusterCard: View {
+private struct ClusterStatus {
+    let text: String
+    let color: Color
+}
+
+private struct ClusterRow: View {
     let index: Int
     let cluster: DeviceCluster
+    let status: ClusterStatus
 
     var body: some View {
         HStack(spacing: 16) {
-            Image(systemName: "person.2")
+            Image(systemName: cluster.isOwnerGroup ? "person.crop.circle.badge.questionmark" : "person.2")
                 .font(.system(size: 24, weight: .semibold))
                 .foregroundStyle(.blue)
-                .frame(width: 58, height: 58)
+                .frame(width: 54, height: 54)
                 .background(Color.blue.opacity(0.10), in: Circle())
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("Group \(index)")
-                    .font(.title3.weight(.bold))
+                Text(cluster.isOwnerGroup ? "Owner Group" : "Group \(index)")
+                    .font(.headline.weight(.bold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.82)
 
                 HStack(spacing: 8) {
                     Circle()
                         .fill(cluster.confidenceLabel.indicatorColor)
                         .frame(width: 8, height: 8)
 
-                    Text("\(cluster.confidenceLabel.displayName) · \(Int(cluster.confidenceScore * 100))%")
-                        .font(.body)
+                    Text("\(cluster.deviceIds.count) devices · \(Int((cluster.confidenceScore * 100).rounded()))%")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.82)
+                        .minimumScaleFactor(0.78)
                 }
             }
 
             Spacer(minLength: 10)
 
-            Text("Seen \(cluster.seenTogetherCount)x")
+            Text(status.text)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary.opacity(0.84))
+                .foregroundStyle(status.color)
                 .lineLimit(1)
-                .minimumScaleFactor(0.78)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .minimumScaleFactor(0.72)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
                 .background(Color(.tertiarySystemGroupedBackground), in: Capsule())
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 20)
-        .frame(maxWidth: .infinity, minHeight: 112, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: .black.opacity(0.05), radius: 14, x: 0, y: 8)
+        .padding(.vertical, 8)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Group \(index), \(cluster.confidenceLabel.displayName), \(Int(cluster.confidenceScore * 100)) percent confidence, seen \(cluster.seenTogetherCount) times")
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        "\(cluster.isOwnerGroup ? "Owner group" : "Group \(index)"), \(cluster.deviceIds.count) devices, \(Int((cluster.confidenceScore * 100).rounded())) percent confidence, \(status.text)"
     }
 }
 
 private extension ConfidenceLabel {
-    var displayName: String {
-        rawValue.capitalized
-    }
-
     var indicatorColor: Color {
         switch self {
         case .high:

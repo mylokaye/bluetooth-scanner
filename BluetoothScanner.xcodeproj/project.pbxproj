@@ -23,6 +23,7 @@
 		2A0001112C2CC00100000001 /* BLEDistanceEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002112C2CC00100000001 /* BLEDistanceEstimator.swift */; };
 		2A00010E2C2CC00100000001 /* ProximityStabilizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00020E2C2CC00100000001 /* ProximityStabilizer.swift */; };
 		2A0001122C2CC00100000001 /* BLEDistanceEstimatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002122C2CC00100000001 /* BLEDistanceEstimatorTests.swift */; };
+		2A00011D2C2CC00100000001 /* ClusterDetectionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00021D2C2CC00100000001 /* ClusterDetectionServiceTests.swift */; };
 		2A0001132C2CC00100000001 /* BluetoothManufacturer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002132C2CC00100000001 /* BluetoothManufacturer.swift */; };
 		2A0001142C2CC00100000001 /* BluetoothAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002142C2CC00100000001 /* BluetoothAppearance.swift */; };
 		2A0001152C2CC00100000001 /* DetectedDeviceClassification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002152C2CC00100000001 /* DetectedDeviceClassification.swift */; };
@@ -63,6 +64,7 @@
 		2A0002112C2CC00100000001 /* BLEDistanceEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDistanceEstimator.swift; sourceTree = "<group>"; };
 		2A00020E2C2CC00100000001 /* ProximityStabilizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProximityStabilizer.swift; sourceTree = "<group>"; };
 		2A0002122C2CC00100000001 /* BLEDistanceEstimatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDistanceEstimatorTests.swift; sourceTree = "<group>"; };
+		2A00021D2C2CC00100000001 /* ClusterDetectionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClusterDetectionServiceTests.swift; sourceTree = "<group>"; };
 		2A0002132C2CC00100000001 /* BluetoothManufacturer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothManufacturer.swift; sourceTree = "<group>"; };
 		2A0002142C2CC00100000001 /* BluetoothAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothAppearance.swift; sourceTree = "<group>"; };
 		2A0002152C2CC00100000001 /* DetectedDeviceClassification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectedDeviceClassification.swift; sourceTree = "<group>"; };
@@ -175,6 +177,7 @@
 			isa = PBXGroup;
 			children = (
 				2A0002122C2CC00100000001 /* BLEDistanceEstimatorTests.swift */,
+				2A00021D2C2CC00100000001 /* ClusterDetectionServiceTests.swift */,
 				2A00021B2C2CC00100000001 /* DeviceClassifierTests.swift */,
 			);
 			path = BluetoothScannerTests;
@@ -318,6 +321,7 @@
 			buildActionMask = 2147483647;
 			files = (
 					2A0001122C2CC00100000001 /* BLEDistanceEstimatorTests.swift in Sources */,
+				2A00011D2C2CC00100000001 /* ClusterDetectionServiceTests.swift in Sources */,
 				2A00011B2C2CC00100000001 /* DeviceClassifierTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

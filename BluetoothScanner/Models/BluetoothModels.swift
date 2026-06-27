@@ -34,18 +34,21 @@ struct ScanSession: Identifiable, Codable, Hashable, Sendable {
 struct DeviceCluster: Identifiable, Codable, Hashable, Sendable {
     let id: UUID
     var deviceIds: [String]
+    var anchorDeviceId: String?
     var clusterType: ClusterType
     var confidenceScore: Double
     var confidenceLabel: ConfidenceLabel
     var seenTogetherCount: Int
     var firstSeen: Date
     var lastSeen: Date
+    var isOwnerGroup: Bool
     var reasons: [String]
 }
 
 enum ClusterType: String, Codable, Sendable {
     case singleDevice
     case commonlySeenTogether
+    case ownerPersonalDevices
 }
 
 enum ConfidenceLabel: String, Codable, Sendable {

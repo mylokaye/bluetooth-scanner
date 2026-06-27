@@ -32,6 +32,41 @@ final class DeviceClassifierTests: XCTestCase {
         XCTAssertEqual(lookup.manufacturerName(for: 117), "Samsung Electronics Co. Ltd.")
     }
 
+    func testFuzzyManufacturerLookupFindsCatalogManufacturerInDeviceName() {
+        let lookup = FuzzyManufacturerLookup(
+            records: [],
+            manufacturers: [
+                BluetoothManufacturer(companyId: 123, companyIdHex: "0x007B", manufacturer: "Acme Audio, Inc.")
+            ]
+        )
+
+        XCTAssertEqual(lookup.manufacturerName(for: "Kitchen Acme Audio Speaker"), "Acme Audio, Inc.")
+    }
+
+    func testFuzzyManufacturerLookupUsesWordBoundaries() {
+        let lookup = FuzzyManufacturerLookup(
+            records: [],
+            manufacturers: [
+                BluetoothManufacturer(companyId: 76, companyIdHex: "0x004C", manufacturer: "Apple")
+            ]
+        )
+
+        XCTAssertNil(lookup.manufacturerName(for: "Pineapple Sensor"))
+    }
+
+    func testCuratedManufacturerMatchTakesPrecedenceOverCatalogMatch() {
+        let lookup = FuzzyManufacturerLookup(
+            records: [
+                ManufacturerNameMatchRecord(manufacturer: "Curated Audio", terms: ["acme buds"])
+            ],
+            manufacturers: [
+                BluetoothManufacturer(companyId: 123, companyIdHex: "0x007B", manufacturer: "Acme")
+            ]
+        )
+
+        XCTAssertEqual(lookup.manufacturerName(for: "Acme Buds"), "Curated Audio")
+    }
+
     func testAppearanceLookupFindsKnownAppearanceValue() {
         let lookup = AppearanceLookup(
             appearances: [
@@ -100,6 +135,32 @@ final class DeviceClassifierTests: XCTestCase {
 
         XCTAssertEqual(result.category, .headphones)
         XCTAssertEqual(result.confidence, 20)
+    }
+
+    func testDeviceClassifierUsesCatalogManufacturerFromNameWhenCompanyIdIsMissing() {
+        let classifier = DeviceClassifier(
+            manufacturerLookup: .empty,
+            fuzzyManufacturerLookup: FuzzyManufacturerLookup(
+                records: [],
+                manufacturers: [
+                    BluetoothManufacturer(companyId: 123, companyIdHex: "0x007B", manufacturer: "Acme Audio, Inc.")
+                ]
+            ),
+            appearanceLookup: .empty
+        )
+
+        let result = classifier.classify(
+            BluetoothAdvertisementSnapshot(
+                localName: "Acme Audio Speaker",
+                manufacturerCompanyId: nil,
+                appearanceId: nil,
+                serviceUUIDs: []
+            )
+        )
+
+        XCTAssertEqual(result.manufacturer, "Acme Audio, Inc.")
+        XCTAssertEqual(result.evidence.first?.source, "Name match")
+        XCTAssertGreaterThanOrEqual(result.confidence, 30)
     }
 
     func testDeviceClassifierReturnsUnknownForWeakData() {
