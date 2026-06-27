@@ -52,3 +52,8 @@ struct AppView: View {
         }
     }
 }
+
+#Preview("App") {
+    AppView()
+        .environmentObject(AppState.preview)
+}

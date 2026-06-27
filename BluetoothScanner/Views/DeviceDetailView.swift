@@ -1,7 +1,7 @@
+import Combine
 import SwiftUI
 
 struct DeviceDetailView: View {
-    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var appState: AppState
     @State private var currentDate = Date()
     @State private var lastSeenReferenceDate = Date()
@@ -55,16 +55,6 @@ struct DeviceDetailView: View {
                     AdvancedDeviceSection(
                         rows: advancedRows(for: device)
                     )
-
-                    Button(role: .destructive) {
-                        appState.ignore(device: device)
-                        dismiss()
-                    } label: {
-                        Label("Ignore device", systemImage: "eye.slash")
-                            .font(.headline.weight(.semibold))
-                            .frame(maxWidth: .infinity, minHeight: 50)
-                    }
-                    .buttonStyle(.bordered)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, showsSheetTitle ? 28 : 18)
@@ -236,13 +226,11 @@ private struct ProximitySummaryView: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
-        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(proximityState.color.opacity(0.18), lineWidth: 1)
         )
-        .padding(14)
-        .background(proximityState.surfaceColor, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityText)
     }
@@ -290,19 +278,21 @@ private struct AdvancedDeviceSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Label("Advanced", systemImage: "slider.horizontal.3")
+            Label("Technical Details", systemImage: "slider.horizontal.3")
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(.blue)
+                .foregroundStyle(.tint)
 
-            DetailRowsCard(rows: rows)
+            DetailRowsCard(rows: rows, backgroundStyle: .clear, horizontalPadding: 0)
         }
         .padding(18)
-        .background(.white, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
 
 private struct DetailRowsCard: View {
     let rows: [DetailRow]
+    var backgroundStyle = Color(.secondarySystemGroupedBackground)
+    var horizontalPadding: CGFloat = 18
 
     var body: some View {
         VStack(spacing: 0) {
@@ -315,9 +305,9 @@ private struct DetailRowsCard: View {
                 }
             }
         }
-        .padding(.horizontal, 18)
+        .padding(.horizontal, horizontalPadding)
         .padding(.vertical, 8)
-        .background(.white, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .background(backgroundStyle, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
 
@@ -346,4 +336,16 @@ private struct DetailRowView: View {
 private struct DetailRow: Hashable {
     let title: String
     let value: String
+}
+
+#Preview("Device Detail") {
+    NavigationStack {
+        DeviceDetailView(deviceId: PreviewData.phone.id)
+    }
+    .environmentObject(AppState.preview)
+}
+
+#Preview("Device Detail Sheet") {
+    DeviceDetailView(deviceId: PreviewData.watch.id, showsSheetTitle: true)
+        .environmentObject(AppState.preview)
 }

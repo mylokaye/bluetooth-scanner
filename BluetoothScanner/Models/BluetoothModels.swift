@@ -7,7 +7,6 @@ struct BluetoothDevice: Identifiable, Codable, Hashable, Sendable {
     var advertisedName: String?
     var firstSeen: Date
     var lastSeen: Date
-    var isIgnored: Bool
     var isMyDevice: Bool
     var localAlias: String?
 }

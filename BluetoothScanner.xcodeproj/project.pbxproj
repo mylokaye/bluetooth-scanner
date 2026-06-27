@@ -30,6 +30,7 @@
 		2A0001172C2CC00100000001 /* AppearanceLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002172C2CC00100000001 /* AppearanceLookup.swift */; };
 		2A0001182C2CC00100000001 /* DeviceClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002182C2CC00100000001 /* DeviceClassifier.swift */; };
 		2A0001192C2CC00100000001 /* data in Resources */ = {isa = PBXBuildFile; fileRef = 2A0002192C2CC00100000001 /* data */; };
+		2A00011C2C2CC00100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A00021C2C2CC00100000001 /* Assets.xcassets */; };
 		2A00011B2C2CC00100000001 /* DeviceClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00021B2C2CC00100000001 /* DeviceClassifierTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -69,6 +70,7 @@
 		2A0002172C2CC00100000001 /* AppearanceLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceLookup.swift; sourceTree = "<group>"; };
 		2A0002182C2CC00100000001 /* DeviceClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceClassifier.swift; sourceTree = "<group>"; };
 		2A0002192C2CC00100000001 /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = data; sourceTree = "<group>"; };
+		2A00021C2C2CC00100000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2A00021B2C2CC00100000001 /* DeviceClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceClassifierTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -181,6 +183,7 @@
 		2A0004092C2CC00100000001 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				2A00021C2C2CC00100000001 /* Assets.xcassets */,
 				2A0002192C2CC00100000001 /* data */,
 			);
 			path = Resources;
@@ -267,6 +270,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2A00011C2C2CC00100000001 /* Assets.xcassets in Resources */,
 				2A0001192C2CC00100000001 /* data in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -451,6 +455,7 @@
 		2A000A032C2CC00100000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -482,6 +487,7 @@
 		2A000A042C2CC00100000001 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

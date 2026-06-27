@@ -1,0 +1,56 @@
+[
+  {
+    "manufacturer": "Apple",
+    "terms": [
+      "airpod",
+      "airpods",
+      "macbook",
+      "mac book",
+      "iphone",
+      "ipad",
+      "apple watch",
+      "airtag",
+      "beats"
+    ]
+  },
+  {
+    "manufacturer": "Philips Hue",
+    "terms": [
+      "hue",
+      "philips hue",
+      "hue bulb",
+      "hue bridge",
+      "hue light",
+      "hue go",
+      "hue play",
+      "lightstrip"
+    ]
+  },
+  {
+    "manufacturer": "Google",
+    "terms": [
+      "pixel",
+      "pixel buds",
+      "pixel watch",
+      "chromecast",
+      "google home",
+      "google nest",
+      "nest hub",
+      "nest mini",
+      "fitbit"
+    ]
+  },
+  {
+    "manufacturer": "Samsung",
+    "terms": [
+      "samsung",
+      "galaxy",
+      "galaxy buds",
+      "galaxy watch",
+      "smartthings",
+      "samsung tv",
+      "qled",
+      "the frame"
+    ]
+  }
+]

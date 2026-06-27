@@ -69,9 +69,63 @@ struct ManufacturerLookup {
     }
 }
 
+struct FuzzyManufacturerLookup {
+    static let empty = FuzzyManufacturerLookup(records: [])
+
+    private static let logger = Logger(subsystem: "BluetoothScanner", category: "FuzzyManufacturerLookup")
+
+    private let records: [ManufacturerNameMatchRecord]
+
+    init(bundle: Bundle = .main, resourceName: String = "manufacturer_name_matches", subdirectory: String? = "data") {
+        guard let url = bundle.url(forResource: resourceName, withExtension: "json", subdirectory: subdirectory) else {
+            Self.logger.error("Missing bundled manufacturer name match JSON resource: \(resourceName).json")
+            self.records = []
+            return
+        }
+
+        do {
+            let data = try Data(contentsOf: url)
+            self.records = try JSONDecoder().decode([ManufacturerNameMatchRecord].self, from: data)
+        } catch {
+            Self.logger.error("Failed to load manufacturer name match JSON: \(error.localizedDescription)")
+            self.records = []
+        }
+    }
+
+    init(records: [ManufacturerNameMatchRecord]) {
+        self.records = records
+    }
+
+    func manufacturerName(for deviceName: String?) -> String? {
+        guard let deviceName else { return nil }
+        let normalizedDeviceName = Self.normalized(deviceName)
+        guard !normalizedDeviceName.isEmpty else { return nil }
+
+        return records.first { record in
+            record.terms.contains { term in
+                let normalizedTerm = Self.normalized(term)
+                return !normalizedTerm.isEmpty && normalizedDeviceName.contains(normalizedTerm)
+            }
+        }?.manufacturer
+    }
+
+    private static func normalized(_ value: String) -> String {
+        value
+            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: #"[^\p{L}\p{N}]+"#, with: " ", options: .regularExpression)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+    }
+}
+
 private struct CompanyIdentifierRecord: Decodable {
     let code: Int
     let name: String
+}
+
+struct ManufacturerNameMatchRecord: Decodable {
+    let manufacturer: String
+    let terms: [String]
 }
 
 private extension BluetoothManufacturer {

@@ -2,13 +2,16 @@ import Foundation
 
 struct DeviceClassifier {
     private let manufacturerLookup: ManufacturerLookup
+    private let fuzzyManufacturerLookup: FuzzyManufacturerLookup
     private let appearanceLookup: AppearanceLookup
 
     init(
         manufacturerLookup: ManufacturerLookup = ManufacturerLookup(),
+        fuzzyManufacturerLookup: FuzzyManufacturerLookup = FuzzyManufacturerLookup(),
         appearanceLookup: AppearanceLookup = AppearanceLookup()
     ) {
         self.manufacturerLookup = manufacturerLookup
+        self.fuzzyManufacturerLookup = fuzzyManufacturerLookup
         self.appearanceLookup = appearanceLookup
     }
 
@@ -16,14 +19,15 @@ struct DeviceClassifier {
         var evidence: [ClassificationEvidence] = []
         var category: DeviceCategory = .unknown
 
-        let manufacturer = snapshot.manufacturerCompanyId.flatMap {
+        let manufacturerFromCompanyId = snapshot.manufacturerCompanyId.flatMap {
             manufacturerLookup.manufacturerName(for: $0)
         }
+        let manufacturer = manufacturerFromCompanyId ?? fuzzyManufacturerLookup.manufacturerName(for: snapshot.localName)
 
         if let manufacturer {
             evidence.append(
                 ClassificationEvidence(
-                    source: "Manufacturer",
+                    source: manufacturerFromCompanyId == nil ? "Name match" : "Manufacturer",
                     value: manufacturer,
                     confidenceContribution: 30
                 )
@@ -303,7 +307,7 @@ struct DeviceClassifier {
         }
 
         if maker.contains("philips") || name.contains("hue") {
-            return "Philips Hue"
+            return "Philips"
         }
 
         return nil

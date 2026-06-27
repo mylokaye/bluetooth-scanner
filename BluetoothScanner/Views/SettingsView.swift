@@ -3,32 +3,19 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var appState: AppState
 
-    private var ignoredDevices: [BluetoothDevice] {
-        appState.devices.filter(\.isIgnored)
-    }
-
     var body: some View {
         List {
+            Section {
+                ScreenHeader(title: "Settings")
+            }
+            .listRowInsets(EdgeInsets(top: 54, leading: 16, bottom: 0, trailing: 16))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+
             Section("Scanning") {
                 LabeledContent("Mode", value: "While app is open")
                 LabeledContent("Connections", value: "Never connects or pairs")
                 LabeledContent("Storage", value: "Local JSON")
-            }
-
-            Section("Ignored Devices") {
-                if ignoredDevices.isEmpty {
-                    Text("None")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(ignoredDevices) { device in
-                        VStack(alignment: .leading) {
-                            Text(displayName(for: device))
-                            Text(device.id)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
             }
 
             if let lastStorageError = appState.lastStorageError {
@@ -38,16 +25,13 @@ struct SettingsView: View {
                 }
             }
         }
-        .navigationTitle("Settings")
+        .toolbar(.hidden, for: .navigationBar)
     }
+}
 
-    private func displayName(for device: BluetoothDevice) -> String {
-        guard let displayName = device.displayName,
-              displayName != "Unknown BLE Device",
-              displayName != "-"
-        else {
-            return "-"
-        }
-        return displayName
+#Preview("Settings") {
+    NavigationStack {
+        SettingsView()
     }
+    .environmentObject(AppState.preview)
 }

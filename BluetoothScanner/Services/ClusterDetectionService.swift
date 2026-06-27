@@ -21,9 +21,8 @@ struct ClusterDetectionService: Sendable {
         observations: [ScanObservation],
         sessions: [ScanSession]
     ) -> [DeviceCluster] {
-        let activeDevices = devices.filter { !$0.isIgnored }
         let observationsByDevice = Dictionary(grouping: observations, by: \.deviceId)
-        let anchorDevices = activeDevices.filter { device in
+        let anchorDevices = devices.filter { device in
             DeviceCategory.infer(for: device, observations: observationsByDevice[device.id] ?? []).canAnchorGroup
         }
 
@@ -35,7 +34,7 @@ struct ClusterDetectionService: Sendable {
 
             let related = relatedDevices(
                 to: anchorDevice,
-                within: activeDevices,
+                within: devices,
                 observationsByDevice: observationsByDevice,
                 sessions: sessions
             )

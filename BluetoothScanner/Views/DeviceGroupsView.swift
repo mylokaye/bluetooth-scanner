@@ -4,108 +4,120 @@ struct DeviceGroupsView: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        List {
-            if appState.clusters.isEmpty {
-                ContentUnavailableView(
-                    "No groups",
-                    systemImage: "rectangle.3.group",
-                    description: Text("Start scanning to detect groups.")
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                ScreenHeader(
+                    title: "Groups",
+                    subtitle: "Devices that are often seen together."
                 )
-            } else {
-                ForEach(appState.clusters) { cluster in
-                    Section {
-                        ClusterCard(cluster: cluster)
+                .padding(.top, 54)
+
+                if appState.clusters.isEmpty {
+                    ContentUnavailableView(
+                        "No groups",
+                        systemImage: "rectangle.3.group",
+                        description: Text("Start scanning to detect groups.")
+                    )
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 48)
+                    .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                } else {
+                    VStack(spacing: 12) {
+                        ForEach(Array(appState.clusters.enumerated()), id: \.element.id) { index, cluster in
+                            ClusterCard(index: index + 1, cluster: cluster)
+                        }
                     }
+
+                    HStack(spacing: 8) {
+                        Image(systemName: "info.circle")
+                        Text("Groups are created automatically.")
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 24)
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 120)
         }
-        .navigationTitle("Device Groups")
+        .background(Color(.systemGroupedBackground))
+        .toolbar(.hidden, for: .navigationBar)
     }
 }
 
 private struct ClusterCard: View {
-    @EnvironmentObject private var appState: AppState
-
+    let index: Int
     let cluster: DeviceCluster
 
-    private var title: String {
-        switch cluster.clusterType {
-        case .singleDevice:
-            return "Single-device group"
-        case .commonlySeenTogether:
-            return "Commonly seen together"
-        }
-    }
-
-    /// Devices in the cluster split into named and unnamed groups.
-    private var deviceGroups: (known: [(id: String, name: String)], unknownCount: Int) {
-        var known: [(id: String, name: String)] = []
-        var unknownCount = 0
-
-        for deviceId in cluster.deviceIds {
-            guard let device = appState.device(id: deviceId) else { continue }
-            let name = device.localAlias ?? device.displayName
-
-            if let name, name != "Unknown BLE Device", name != "-" {
-                known.append((id: deviceId, name: name))
-            } else {
-                unknownCount += 1
-            }
-        }
-
-        return (known, unknownCount)
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.headline)
-                    Text("\(cluster.confidenceLabel.rawValue.capitalized) · \(Int(cluster.confidenceScore * 100))%")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Text("Seen \(cluster.seenTogetherCount)x")
-                    .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.thinMaterial, in: Capsule())
-            }
+        HStack(spacing: 16) {
+            Image(systemName: "person.2")
+                .font(.system(size: 24, weight: .semibold))
+                .foregroundStyle(.blue)
+                .frame(width: 58, height: 58)
+                .background(Color.blue.opacity(0.10), in: Circle())
 
             VStack(alignment: .leading, spacing: 8) {
-                // Named devices shown individually with navigation.
-                ForEach(deviceGroups.known, id: \.id) { item in
-                    NavigationLink {
-                        DeviceDetailView(deviceId: item.id)
-                    } label: {
-                        HStack {
-                            Image(systemName: "dot.radiowaves.forward")
-                                .foregroundStyle(.tint)
-                            Text(item.name)
-                        }
-                    }
-                }
+                Text("Group \(index)")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
 
-                // Collapse all unnamed devices into a single summary row.
-                if deviceGroups.unknownCount > 0 {
-                    HStack {
-                        Image(systemName: "dot.radiowaves.forward")
-                            .foregroundStyle(.secondary)
-                        Text("- Devices (\(deviceGroups.unknownCount))")
-                            .foregroundStyle(.secondary)
-                    }
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(cluster.confidenceLabel.indicatorColor)
+                        .frame(width: 8, height: 8)
+
+                    Text("\(cluster.confidenceLabel.displayName) · \(Int(cluster.confidenceScore * 100))%")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.82)
                 }
             }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Label(cluster.firstSeen.formatted(date: .abbreviated, time: .shortened), systemImage: "calendar.badge.plus")
-                Label(cluster.lastSeen.formatted(date: .abbreviated, time: .shortened), systemImage: "clock")
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            Spacer(minLength: 10)
+
+            Text("Seen \(cluster.seenTogetherCount)x")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary.opacity(0.84))
+                .lineLimit(1)
+                .minimumScaleFactor(0.78)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color(.tertiarySystemGroupedBackground), in: Capsule())
         }
-        .padding(.vertical, 6)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 20)
+        .frame(maxWidth: .infinity, minHeight: 112, alignment: .leading)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: .black.opacity(0.05), radius: 14, x: 0, y: 8)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Group \(index), \(cluster.confidenceLabel.displayName), \(Int(cluster.confidenceScore * 100)) percent confidence, seen \(cluster.seenTogetherCount) times")
     }
+}
+
+private extension ConfidenceLabel {
+    var displayName: String {
+        rawValue.capitalized
+    }
+
+    var indicatorColor: Color {
+        switch self {
+        case .high:
+            return .green
+        case .medium:
+            return .orange
+        case .low:
+            return .gray
+        }
+    }
+}
+
+#Preview("Device Groups") {
+    NavigationStack {
+        DeviceGroupsView()
+    }
+    .environmentObject(AppState.preview)
 }

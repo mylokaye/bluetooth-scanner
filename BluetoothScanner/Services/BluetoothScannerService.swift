@@ -12,7 +12,6 @@ final class BluetoothScannerService: NSObject, ObservableObject {
     var onObservation: ((ScanObservation, BluetoothDevice) -> Void)?
 
     private var centralManager: CBCentralManager?
-    private var ignoredDeviceIds: Set<String> = []
     private var lastEmissionByDeviceId: [String: (date: Date, rssi: Int)] = [:]
     private var liveDeviceIndexById: [String: Int] = [:]
     private let minimumDuplicateEmissionInterval: TimeInterval = 1
@@ -54,14 +53,7 @@ final class BluetoothScannerService: NSObject, ObservableObject {
         liveDevices = []
         liveRSSI = [:]
         liveDeviceIndexById = [:]
-        ignoredDeviceIds = []
         lastEmissionByDeviceId = [:]
-    }
-
-    func ignoreDevice(id: String) {
-        ignoredDeviceIds.insert(id)
-        removeLiveDevice(id: id)
-        liveRSSI[id] = nil
     }
 
     private func updateAuthorizationMessage() {
@@ -119,12 +111,15 @@ extension BluetoothScannerService: CBCentralManagerDelegate {
     ) {
         Task { @MainActor in
             let deviceId = peripheral.identifier.uuidString
-            guard !ignoredDeviceIds.contains(deviceId) else { return }
 
             let advertisedName = advertisementData[CBAdvertisementDataLocalNameKey] as? String
+            let deviceName = Self.meaningfulName(advertisedName) ?? Self.meaningfulName(peripheral.name)
             let serviceUUIDs = (advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID] ?? [])
                 .map(\.uuidString)
             let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
+            let manufacturerIdentifier = manufacturerData.flatMap(Self.manufacturerIdentifier)
+            guard deviceName != nil || manufacturerIdentifier != nil else { return }
+
             let appearanceValue = (advertisementData["kCBAdvDataAppearance"] as? NSNumber)?.intValue
             let txPower = advertisementData[CBAdvertisementDataTxPowerLevelKey] as? Int
             let timestamp = Date()
@@ -132,11 +127,10 @@ extension BluetoothScannerService: CBCentralManagerDelegate {
 
             let device = BluetoothDevice(
                 id: deviceId,
-                displayName: advertisedName ?? peripheral.name ?? "-",
+                displayName: deviceName ?? "-",
                 advertisedName: advertisedName,
                 firstSeen: liveDevice(id: deviceId)?.firstSeen ?? timestamp,
                 lastSeen: timestamp,
-                isIgnored: false,
                 isMyDevice: false,
                 localAlias: nil
             )
@@ -155,7 +149,7 @@ extension BluetoothScannerService: CBCentralManagerDelegate {
                 advertisedName: advertisedName,
                 serviceUUIDs: serviceUUIDs,
                 manufacturerDataSummary: manufacturerData.map(Self.manufacturerSummary),
-                manufacturerIdentifier: manufacturerData.flatMap(Self.manufacturerIdentifier),
+                manufacturerIdentifier: manufacturerIdentifier,
                 appearanceValue: appearanceValue,
                 txPower: txPower
             )
@@ -195,18 +189,6 @@ extension BluetoothScannerService: CBCentralManagerDelegate {
         }
     }
 
-    private func removeLiveDevice(id: String) {
-        guard let removedIndex = liveDeviceIndexById.removeValue(forKey: id) else {
-            return
-        }
-
-        liveDevices.remove(at: removedIndex)
-
-        for index in removedIndex..<liveDevices.count {
-            liveDeviceIndexById[liveDevices[index].id] = index
-        }
-    }
-
     private static func manufacturerSummary(_ data: Data) -> String {
         let prefix = data.prefix(12)
             .map { String(format: "%02X", $0) }
@@ -217,6 +199,21 @@ extension BluetoothScannerService: CBCentralManagerDelegate {
         }
 
         return "\(data.count) bytes: \(prefix)"
+    }
+
+    private static func meaningfulName(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmedValue = value.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedValue.isEmpty,
+              trimmedValue != "-",
+              trimmedValue != "Unknown",
+              trimmedValue != "Unknown BLE Device"
+        else {
+            return nil
+        }
+
+        return trimmedValue
     }
 
     private static func manufacturerIdentifier(_ data: Data) -> String? {

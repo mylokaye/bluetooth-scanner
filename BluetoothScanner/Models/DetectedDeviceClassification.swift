@@ -47,27 +47,27 @@ enum DeviceCategory: String, Codable, CaseIterable, Identifiable, Hashable, Send
     var title: String {
         switch self {
         case .phone:
-            return "Phones"
+            return "Phone"
         case .watch:
-            return "Watches"
+            return "Watch"
         case .headphones:
             return "Headphones"
         case .computer:
-            return "Computers"
+            return "Computer"
         case .wearable:
-            return "Wearables"
+            return "Wearable"
         case .health:
             return "Health"
         case .keyboard:
-            return "Keyboards"
+            return "Keyboard"
         case .mouse:
-            return "Mice"
+            return "Mouse"
         case .tracker:
             return "Trackers"
         case .vehicle:
-            return "Vehicles"
+            return "Vehicle"
         case .tv:
-            return "TVs"
+            return "Television"
         case .lighting:
             return "Lighting"
         case .unknown:

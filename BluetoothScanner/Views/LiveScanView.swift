@@ -1,4 +1,28 @@
 import SwiftUI
+import UIKit
+
+struct ScreenHeader: View {
+    let title: String
+    var subtitle: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.system(size: 42, weight: .bold, design: .rounded))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            if let subtitle {
+                Text(subtitle)
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
 
 struct LiveScanView: View {
     @EnvironmentObject private var appState: AppState
@@ -6,20 +30,41 @@ struct LiveScanView: View {
     @State private var selectedManufacturer: KnownDeviceManufacturerSummary?
     @State private var selectedOverview = LiveOverviewTab.categories
 
+    private var visibleDeviceCount: Int {
+        appState.devices.count
+    }
+
+    private var nearbyDeviceCount: Int {
+        appState.devices.filter { device in
+            let proximity = appState.stabilizedProximity(for: device.id)
+            return proximity == .close || proximity == .nearby
+        }.count
+    }
+
     var body: some View {
         List {
             Section {
-                ScanActionContainer(
+                ScreenHeader(title: "Live Scan")
+            }
+            .listRowInsets(EdgeInsets(top: 54, leading: 16, bottom: 0, trailing: 16))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+
+            Section {
+                ScanActionHeader(
                     isScanning: appState.scanner.isScanning,
-                    bluetoothState: appState.scanner.bluetoothState,
                     canClear: !appState.devices.isEmpty || !appState.observations.isEmpty,
+                    deviceCount: visibleDeviceCount,
+                    nearbyDeviceCount: nearbyDeviceCount,
+                    groupCount: appState.clusters.count,
                     onScanToggle: toggleScan,
                     onClear: appState.clearScanData
                 )
             }
 
-            Section {
+            Section("Overview") {
                 OverviewTabs(selection: $selectedOverview)
+                    .listRowSeparator(.hidden)
 
                 switch selectedOverview {
                 case .categories:
@@ -34,14 +79,17 @@ struct LiveScanView: View {
                     )
                 }
             }
+            .listRowSeparator(.hidden)
 
         }
-        .navigationTitle("Live Scan")
+        .toolbar(.hidden, for: .navigationBar)
         .navigationDestination(item: $selectedCategory) { summary in
             KnownCategoryDevicesView(summary: summary)
+                .toolbar(.visible, for: .navigationBar)
         }
         .navigationDestination(item: $selectedManufacturer) { summary in
             KnownManufacturerDevicesView(summary: summary)
+                .toolbar(.visible, for: .navigationBar)
         }
     }
 
@@ -61,68 +109,121 @@ private enum LiveOverviewTab: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-private struct ScanActionContainer: View {
+private struct ScanActionHeader: View {
     let isScanning: Bool
-    let bluetoothState: String
     let canClear: Bool
+    let deviceCount: Int
+    let nearbyDeviceCount: Int
+    let groupCount: Int
     let onScanToggle: () -> Void
     let onClear: () -> Void
 
-    private var statusText: String {
-        switch bluetoothState {
-        case "Powered on":
-            return "Powered On"
-        case "Powered off":
-            return "Bluetooth Off"
-        default:
-            return bluetoothState
-        }
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 22) {
+            HStack(spacing: 14) {
                 Button(action: onScanToggle) {
-                    Label(isScanning ? "Stop" : "Scan", systemImage: isScanning ? "stop.fill" : "dot.radiowaves.left.and.right")
-                        .font(.headline.weight(.semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                        .frame(maxWidth: .infinity, minHeight: 56)
+                    HStack(spacing: 16) {
+                        Image(systemName: isScanning ? "stop.fill" : "dot.radiowaves.left.and.right")
+                            .font(.system(size: 24, weight: .semibold))
+                            .frame(width: 44)
+
+                        Text(isScanning ? "Stop Scan" : "Start Scan")
+                            .font(.title2.weight(.bold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 22)
+                    .frame(maxWidth: .infinity, minHeight: 64)
+                    .background(isScanning ? Color.red : Color.blue, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(isScanning ? .red : .blue)
+                .buttonStyle(.plain)
+                .accessibilityLabel(isScanning ? "Stop scan" : "Start scan")
 
                 Button(role: .destructive, action: onClear) {
-                    Label("Clear", systemImage: "trash")
-                        .font(.subheadline.weight(.semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                        .frame(width: 96, height: 52)
+                    Image(systemName: "trash")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundStyle(.blue)
+                        .frame(width: 68, height: 64)
+                        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(Color(.separator).opacity(0.35), lineWidth: 1)
+                        )
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
                 .disabled(!canClear)
-                .accessibilityLabel("Clear")
+                .opacity(canClear ? 1 : 0.45)
+                .accessibilityLabel("Clear scan data")
             }
 
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(isScanning ? Color.green : Color.secondary.opacity(0.55))
-                    .frame(width: 8, height: 8)
+            HStack(spacing: 10) {
+                ScanMetricChip(title: "Devices", value: deviceCount, systemImage: "sensor.tag.radiowaves.forward")
+                ScanMetricChip(title: "Nearby", value: nearbyDeviceCount, systemImage: "location")
+                ScanMetricChip(title: "Groups", value: groupCount, systemImage: "square.grid.2x2")
+            }
 
-                Text(statusText)
-                    .font(.subheadline.weight(.semibold))
+            HStack(spacing: 12) {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.blue)
+
+                Text("Scans only while this app is open. Never connects or pairs.")
+                    .font(.subheadline)
                     .foregroundStyle(.primary)
-
-                Spacer()
-
-                Text(isScanning ? "Scanning" : "Idle")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, 2)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color(.separator).opacity(0.28), lineWidth: 1)
+            )
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 10)
+    }
+}
+
+private struct ScanMetricChip: View {
+    let title: String
+    let value: Int
+    let systemImage: String
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(.blue)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(value)")
+                    .font(.system(size: 24, weight: .bold, design: .rounded).monospacedDigit())
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity, minHeight: 82, alignment: .leading)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color(.separator).opacity(0.28), lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title), \(value)")
     }
 }
 
@@ -136,7 +237,8 @@ private struct OverviewTabs: View {
             }
         }
         .pickerStyle(.segmented)
-        .padding(.vertical, 4)
+        .padding(.top, 4)
+        .padding(.bottom, 0)
     }
 }
 
@@ -157,13 +259,10 @@ private struct CategoryOverviewGrid: View {
                     Button {
                         selectedCategory = summary
                     } label: {
-                        SummaryTile(
-                            symbolName: summary.symbolName,
-                            title: summary.categoryName,
-                            count: summary.count
-                        )
+                        CategorySummaryTile(summary: summary)
                     }
                     .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity)
                 }
             }
         }
@@ -187,13 +286,10 @@ private struct ManufacturerOverviewGrid: View {
                     Button {
                         selectedManufacturer = summary
                     } label: {
-                        SummaryTile(
-                            symbolName: "building.2",
-                            title: summary.manufacturerName,
-                            count: summary.count
-                        )
+                        ManufacturerSummaryTile(summary: summary)
                     }
                     .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity)
                 }
             }
         }
@@ -201,23 +297,29 @@ private struct ManufacturerOverviewGrid: View {
 }
 
 private struct SummaryGrid<Content: View>: View {
-    private let content: Content
+    private static var cardSpacing: CGFloat { 10 }
 
-    init(@ViewBuilder content: () -> Content) {
+    private let content: Content
+    private let horizontalOutset: CGFloat
+
+    init(horizontalOutset: CGFloat = 0, @ViewBuilder content: () -> Content) {
+        self.horizontalOutset = horizontalOutset
         self.content = content()
     }
 
     var body: some View {
         LazyVGrid(
             columns: [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
+                GridItem(.flexible(minimum: 0), spacing: Self.cardSpacing),
+                GridItem(.flexible(minimum: 0), spacing: Self.cardSpacing)
             ],
-            spacing: 12
+            spacing: Self.cardSpacing
         ) {
             content
         }
-        .padding(.vertical, 4)
+        .padding(.horizontal, -horizontalOutset)
+        .padding(.top, -2)
+        .padding(.bottom, 4)
     }
 }
 
@@ -248,13 +350,6 @@ private struct KnownCategoryDevicesView: View {
                             DeviceRow(device: device)
                         }
                         .buttonStyle(.plain)
-                        .swipeActions(edge: .trailing) {
-                            Button(role: .destructive) {
-                                appState.ignore(device: device)
-                            } label: {
-                                Label("Ignore", systemImage: "eye.slash")
-                            }
-                        }
                     }
                 }
             }
@@ -263,8 +358,8 @@ private struct KnownCategoryDevicesView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $selectedDevice) { device in
             DeviceDetailPopover(deviceId: device.id)
-                .presentationDetents([.fraction(0.58), .large])
-                .presentationDragIndicator(.hidden)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
 }
@@ -296,13 +391,6 @@ private struct KnownManufacturerDevicesView: View {
                             DeviceRow(device: device)
                         }
                         .buttonStyle(.plain)
-                        .swipeActions(edge: .trailing) {
-                            Button(role: .destructive) {
-                                appState.ignore(device: device)
-                            } label: {
-                                Label("Ignore", systemImage: "eye.slash")
-                            }
-                        }
                     }
                 }
             }
@@ -311,13 +399,13 @@ private struct KnownManufacturerDevicesView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $selectedDevice) { device in
             DeviceDetailPopover(deviceId: device.id)
-                .presentationDetents([.fraction(0.58), .large])
-                .presentationDragIndicator(.hidden)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
 }
 
-private struct DeviceDetailPopover: View {
+struct DeviceDetailPopover: View {
     let deviceId: String
 
     var body: some View {
@@ -325,40 +413,142 @@ private struct DeviceDetailPopover: View {
     }
 }
 
-private struct SummaryTile: View {
-    let symbolName: String
-    let title: String
+private struct OverviewSummaryTile<Mark: View>: View {
     let count: Int
+    let accessibilityLabel: String
+    private let mark: Mark
+
+    init(
+        count: Int,
+        accessibilityLabel: String,
+        @ViewBuilder mark: () -> Mark
+    ) {
+        self.count = count
+        self.accessibilityLabel = accessibilityLabel
+        self.mark = mark()
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top) {
-                Image(systemName: symbolName)
-                    .font(.title3)
-                    .foregroundStyle(.tint)
-                    .frame(width: 32, height: 32)
-                    .background(.tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        Color.clear
+            .aspectRatio(1, contentMode: .fit)
+            .overlay {
+                VStack(spacing: 14) {
+                    Text("\(count)")
+                        .font(.system(size: 52, weight: .regular, design: .rounded).monospacedDigit())
+                        .foregroundStyle(.primary.opacity(0.78))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
 
-                Spacer()
-
-                Text("\(count)")
-                    .font(.system(size: 34, weight: .bold, design: .rounded).monospacedDigit())
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                    mark
+                        .frame(height: 36)
+                        .frame(maxWidth: .infinity)
+                }
+                .padding(14)
             }
+            .frame(maxWidth: .infinity)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color(.separator).opacity(0.18), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(accessibilityLabel)
+    }
+}
 
-            Text(title)
-                .font(.headline)
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
+private struct CategorySummaryTile: View {
+    let summary: KnownDeviceCategorySummary
+
+    var body: some View {
+        OverviewSummaryTile(
+            count: summary.count,
+            accessibilityLabel: "\(summary.categoryName), \(summary.count) devices"
+        ) {
+            Image(systemName: summary.symbolName)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.blue)
+                .frame(height: 18)
         }
-        .frame(maxWidth: .infinity, minHeight: 116, alignment: .topLeading)
-        .padding(14)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title), \(count) devices")
+    }
+}
+
+private struct ManufacturerSummaryTile: View {
+    let summary: KnownDeviceManufacturerSummary
+
+    private var logoAsset: ManufacturerLogoAsset? {
+        ManufacturerLogoAsset(manufacturerName: summary.manufacturerName)
+    }
+
+    var body: some View {
+        OverviewSummaryTile(
+            count: summary.count,
+            accessibilityLabel: "\(summary.manufacturerName), \(summary.count) devices"
+        ) {
+            manufacturerMark
+        }
+    }
+
+    @ViewBuilder
+    private var manufacturerMark: some View {
+        if let logoAsset {
+            Image(logoAsset.imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: 135, maxHeight: 36)
+                .accessibilityHidden(true)
+        } else {
+            Text(summary.manufacturerName.uppercased())
+                .font(.system(size: 16, weight: .semibold).italic())
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.62)
+                .multilineTextAlignment(.center)
+        }
+    }
+}
+
+private struct ManufacturerLogoAsset {
+    let imageName: String
+
+    init?(manufacturerName: String, bundle: Bundle = .main) {
+        guard let imageName = Self.candidateNames(for: manufacturerName).first(where: { candidate in
+            UIImage(named: candidate, in: bundle, compatibleWith: nil) != nil
+        }) else {
+            return nil
+        }
+
+        self.imageName = imageName
+    }
+
+    private static func candidateNames(for manufacturerName: String) -> [String] {
+        let cleanedName = manufacturerName
+            .replacingOccurrences(
+                of: #"\b(inc|incorporated|llc|ltd|limited|corp|corporation|company|co|electronics|group)\b\.?"#,
+                with: " ",
+                options: [.regularExpression, .caseInsensitive]
+            )
+            .replacingOccurrences(of: #"[^A-Za-z0-9]+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let words = cleanedName
+            .split(separator: " ")
+            .map(String.init)
+
+        let fullName = words.joined(separator: " ").localizedCapitalized
+        let firstWord = words.first?.localizedCapitalized
+
+        return [fullName, firstWord]
+            .compactMap { $0 }
+            .filter { !$0.isEmpty }
+            .uniqued()
+    }
+}
+
+private extension Array where Element: Hashable {
+    func uniqued() -> [Element] {
+        var seen: Set<Element> = []
+        return filter { seen.insert($0).inserted }
     }
 }
 
@@ -371,8 +561,8 @@ private struct DeviceRow: View {
         appState.classification(for: device)
     }
 
-    private var activityStatus: ActivityStatus {
-        appState.activityStatus(for: device.id)
+    private var proximityState: ProximityState {
+        appState.stabilizedProximity(for: device.id)
     }
 
     var body: some View {
@@ -397,7 +587,7 @@ private struct DeviceRow: View {
 
             Spacer()
 
-            ActivityPill(status: activityStatus)
+            ProximityPill(state: proximityState)
         }
         .padding(.vertical, 6)
     }
@@ -423,15 +613,22 @@ private struct DeviceRow: View {
     }
 }
 
-private struct ActivityPill: View {
-    let status: ActivityStatus
+private struct ProximityPill: View {
+    let state: ProximityState
 
     var body: some View {
-        Text(status.displayName)
+        Text(state.rawValue)
             .font(.caption.weight(.semibold))
             .foregroundStyle(.white)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .background(status.color, in: Capsule())
+            .background(state.color, in: Capsule())
     }
+}
+
+#Preview("Live Scan") {
+    NavigationStack {
+        LiveScanView()
+    }
+    .environmentObject(AppState.preview)
 }

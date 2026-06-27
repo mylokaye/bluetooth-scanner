@@ -118,21 +118,6 @@ final class AppState: ObservableObject {
         }
     }
 
-    func ignore(device: BluetoothDevice) {
-        guard let index = deviceIndex[device.id] else { return }
-        devices[index].isIgnored = true
-        scanner.ignoreDevice(id: device.id)
-        distanceEstimators[device.id] = nil
-        lastDistanceSnapshots[device.id] = nil
-        proximityStabilizers[device.id] = nil
-        pendingClusterRebuildTask?.cancel()
-        pendingClusterRebuildTask = Task { @MainActor [weak self] in
-            await self?.rebuildClusters()
-            self?.rebuildLiveOverview()
-            self?.scheduleSave()
-        }
-    }
-
     func device(id: String) -> BluetoothDevice? {
         if let index = deviceIndex[id] {
             return devices[index]
@@ -213,7 +198,6 @@ final class AppState: ObservableObject {
 
     func devices(in category: DeviceCategory) -> [BluetoothDevice] {
         return devices
-            .filter { !$0.isIgnored }
             .filter { device in
                 let classification = classification(for: device)
                 return classification.category == category && shouldAppearInCategoryOverview(classification)
@@ -223,7 +207,6 @@ final class AppState: ObservableObject {
 
     func devices(inKnownCategory categoryName: String) -> [BluetoothDevice] {
         return devices
-            .filter { !$0.isIgnored }
             .filter { device in
                 let classification = classification(for: device)
                 return classification.categoryName == categoryName && shouldAppearInCategoryOverview(classification)
@@ -233,7 +216,6 @@ final class AppState: ObservableObject {
 
     func devices(forKnownManufacturer manufacturerName: String) -> [BluetoothDevice] {
         return devices
-            .filter { !$0.isIgnored }
             .filter { device in
                 let classification = classification(for: device)
                 return manufacturerDisplayName(for: classification) == manufacturerName
@@ -395,9 +377,7 @@ final class AppState: ObservableObject {
     }
 
     private func rebuildLiveOverview() {
-        let visibleDevices = devices
-            .filter { !$0.isIgnored }
-            .sorted { $0.lastSeen > $1.lastSeen }
+        let visibleDevices = devices.sorted { $0.lastSeen > $1.lastSeen }
 
         guard !visibleDevices.isEmpty else {
             knownDeviceCategorySummaries = []
@@ -518,6 +498,39 @@ final class AppState: ObservableObject {
     }
 
 }
+
+#if DEBUG
+extension AppState {
+    static var preview: AppState {
+        let state = AppState()
+        state.loadPreviewData()
+        return state
+    }
+
+    private func loadPreviewData() {
+        devices = PreviewData.devices
+        observations = PreviewData.observations
+        sessions = PreviewData.sessions
+        clusters = PreviewData.clusters
+        rebuildDeviceIndex()
+        rebuildObservationIndexes()
+        classificationByDevice = [:]
+        rebuildLiveOverview()
+
+        for observation in observations {
+            updateDistanceCache(
+                for: observation.deviceId,
+                rssi: observation.rssi,
+                at: observation.timestamp
+            )
+            proximityStabilizer(for: observation.deviceId).update(
+                rssi: observation.rssi,
+                at: observation.timestamp
+            )
+        }
+    }
+}
+#endif
 
 private extension Array where Element == BluetoothDevice {
     func sortedByDeviceIdentifier() -> [BluetoothDevice] {
