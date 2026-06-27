@@ -52,7 +52,7 @@ struct LiveScanView: View {
 
             Section {
                 ScanActionHeader(
-                    isScanning: appState.scanner.isScanning,
+                    scanner: appState.scanner,
                     canClear: !appState.devices.isEmpty || !appState.observations.isEmpty,
                     deviceCount: visibleDeviceCount,
                     nearbyDeviceCount: nearbyDeviceCount,
@@ -110,7 +110,7 @@ private enum LiveOverviewTab: String, CaseIterable, Identifiable {
 }
 
 private struct ScanActionHeader: View {
-    let isScanning: Bool
+    @ObservedObject var scanner: BluetoothScannerService
     let canClear: Bool
     let deviceCount: Int
     let nearbyDeviceCount: Int
@@ -123,11 +123,11 @@ private struct ScanActionHeader: View {
             HStack(spacing: 14) {
                 Button(action: onScanToggle) {
                     HStack(spacing: 16) {
-                        Image(systemName: isScanning ? "stop.fill" : "dot.radiowaves.left.and.right")
+                        Image(systemName: scanner.isScanning ? "stop.fill" : "dot.radiowaves.left.and.right")
                             .font(.system(size: 24, weight: .semibold))
                             .frame(width: 44)
 
-                        Text(isScanning ? "Stop Scan" : "Start Scan")
+                        Text(scanner.isScanning ? "Stop Scan" : "Start Scan")
                             .font(.title2.weight(.bold))
                             .lineLimit(1)
                             .minimumScaleFactor(0.75)
@@ -136,10 +136,10 @@ private struct ScanActionHeader: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 22)
                     .frame(maxWidth: .infinity, minHeight: 64)
-                    .background(isScanning ? Color.red : Color.blue, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(scanner.isScanning ? Color.red : Color.blue, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(isScanning ? "Stop scan" : "Start scan")
+                .accessibilityLabel(scanner.isScanning ? "Stop scan" : "Start scan")
 
                 Button(role: .destructive, action: onClear) {
                     Image(systemName: "trash")

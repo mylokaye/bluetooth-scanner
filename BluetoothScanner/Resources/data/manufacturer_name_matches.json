@@ -3,6 +3,7 @@
     "manufacturer": "Apple",
     "terms": [
       "airpod",
+      "apple",
       "airpods",
       "macbook",
       "mac book",
@@ -14,9 +15,10 @@
     ]
   },
   {
-    "manufacturer": "Philips Hue",
+    "manufacturer": "Philips",
     "terms": [
       "hue",
+      "philips",
       "philips hue",
       "hue bulb",
       "hue bridge",
@@ -30,6 +32,7 @@
     "manufacturer": "Google",
     "terms": [
       "pixel",
+      "Google",
       "pixel buds",
       "pixel watch",
       "chromecast",

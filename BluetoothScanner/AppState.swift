@@ -1,5 +1,12 @@
 import Foundation
-import Combine
+import OSLog
+
+private struct ClassificationInputKey: Equatable, Sendable {
+    var localName: String?
+    var manufacturerIdentifier: String?
+    var appearanceValue: Int?
+    var serviceUUIDs: [String]
+}
 
 @MainActor
 final class AppState: ObservableObject {
@@ -23,8 +30,8 @@ final class AppState: ObservableObject {
         )
     }()
     private var sessionService = SessionService()
-    private let clusterService = ClusterDetectionService()
-    private var cancellables: Set<AnyCancellable> = []
+    private let clusterWorker = ClusterDetectionWorker()
+    private let logger = Logger(subsystem: "BluetoothScanner", category: "AppState")
     private var pendingSaveTask: Task<Void, Never>?
     private var pendingClusterRebuildTask: Task<Void, Never>?
     private var pendingLiveOverviewTask: Task<Void, Never>?
@@ -33,10 +40,17 @@ final class AppState: ObservableObject {
     private var proximityStabilizers: [String: ProximityStabilizer] = [:]
     private var deviceIndex: [String: Int] = [:]  // deviceId → index in devices array
     private var observationsByDevice: [String: [ScanObservation]] = [:]
+    private var recentObservationsByDevice: [String: [ScanObservation]] = [:]
     private var latestObservationByDevice: [String: ScanObservation] = [:]
     private var classificationByDevice: [String: DetectedDeviceClassification] = [:]
+    private var classificationInputByDevice: [String: ClassificationInputKey] = [:]
     private var trackedDeviceIds: Set<String> = [] // devices whose detail view is currently open
     private let maximumStoredObservations = 5_000
+    private let clusterRollingHistoryWindow: TimeInterval = 30
+    private let clusterCorrelationWindow: TimeInterval = 20
+    private let clusterMinimumOverlapCount = 5
+    private let clusterStationaryVarianceThreshold = 2.0
+    private let clusterRSSIFloor = -100
 
     // Activity-status thresholds (seconds). A device seen within the online
     // threshold is "Online"; seen within the recently-seen threshold but
@@ -50,12 +64,6 @@ final class AppState: ObservableObject {
                 await self?.record(observation: observation, device: device)
             }
         }
-
-        scanner.objectWillChange
-            .sink { [weak self] _ in
-                self?.objectWillChange.send()
-            }
-            .store(in: &cancellables)
     }
 
     func load() async {
@@ -68,7 +76,8 @@ final class AppState: ObservableObject {
             rebuildDeviceIndex()
             rebuildObservationIndexes()
             classificationByDevice = [:]
-            rebuildClusters()
+            rebuildClassificationInputs()
+            await rebuildClusters()
             rebuildLiveOverview()
         } catch {
             lastStorageError = error.localizedDescription
@@ -87,7 +96,7 @@ final class AppState: ObservableObject {
         pendingClusterRebuildTask = nil
         pendingSaveTask?.cancel()
         Task { @MainActor [weak self] in
-            self?.rebuildClusters()
+            await self?.rebuildClusters()
             self?.rebuildLiveOverview()
             await self?.save()
         }
@@ -110,11 +119,15 @@ final class AppState: ObservableObject {
         proximityStabilizers = [:]
         deviceIndex = [:]
         observationsByDevice = [:]
+        recentObservationsByDevice = [:]
         latestObservationByDevice = [:]
         classificationByDevice = [:]
+        classificationInputByDevice = [:]
         trackedDeviceIds = []
         sessionService.reset()
-        clusterService.reset()
+        Task {
+            await clusterWorker.reset()
+        }
 
         Task {
             await save()
@@ -233,40 +246,39 @@ final class AppState: ObservableObject {
 
         let classification = classification(
             for: device,
-            observations: observationsByDevice[device.id] ?? []
+            input: classificationInput(for: device)
         )
         classificationByDevice[device.id] = classification
         return classification
     }
 
-    private func classification(for device: BluetoothDevice, observations deviceObservations: [ScanObservation]) -> DetectedDeviceClassification {
-        let latestObservations = deviceObservations
-        let latestManufacturerIdentifier = latestObservations.lazy.compactMap(\.manufacturerIdentifier).first
-        let latestAppearanceValue = latestObservations.lazy.compactMap(\.appearanceValue).first
+    private func classification(for device: BluetoothDevice, input: ClassificationInputKey) -> DetectedDeviceClassification {
         let snapshot = BluetoothAdvertisementSnapshot(
-            localName: preferredLocalName(for: device),
-            manufacturerCompanyId: manufacturerCompanyId(from: latestManufacturerIdentifier),
-            appearanceId: latestAppearanceValue,
-            serviceUUIDs: deviceObservations.flatMap(\.serviceUUIDs)
+            localName: input.localName,
+            manufacturerCompanyId: manufacturerCompanyId(from: input.manufacturerIdentifier),
+            appearanceId: input.appearanceValue,
+            serviceUUIDs: input.serviceUUIDs
         )
 
         return deviceClassifier.classify(snapshot)
     }
 
     private func record(observation: ScanObservation, device incomingDevice: BluetoothDevice) async {
+        let startedAt = Date()
         let device = merge(device: incomingDevice)
         updateDistanceCache(for: device.id, rssi: observation.rssi, at: observation.timestamp)
         proximityStabilizer(for: device.id).update(rssi: observation.rssi, at: observation.timestamp)
 
         observations.append(observation)
         appendObservationIndex(observation)
-        classificationByDevice[device.id] = nil
+        updateClassificationInput(for: device, observation: observation)
         trimStoredObservationsIfNeeded()
         sessionService.record(deviceId: device.id, at: observation.timestamp)
-        sessions = sessionService.sessions
+        assignIfChanged(&sessions, sessionService.sessions)
         scheduleLiveOverviewRebuild()
         scheduleClusterRebuild()
         scheduleSave()
+        logDuration("record", since: startedAt)
     }
 
     @discardableResult
@@ -283,18 +295,15 @@ final class AppState: ObservableObject {
         }
     }
 
-    private func rebuildClusters() {
-        let currentClassifications = Dictionary(
-            uniqueKeysWithValues: devices.map { device in
-                (device.id, classification(for: device))
-            }
+    private func rebuildClusters() async {
+        let startedAt = Date()
+        let snapshots = clusterSnapshots(at: startedAt)
+        let result = await clusterWorker.detectClusters(
+            snapshots: snapshots,
+            at: startedAt
         )
-        let result = clusterService.detectClusters(
-            devices: devices,
-            observationsByDevice: observationsByDevice,
-            classificationsByDevice: currentClassifications
-        )
-        clusters = result.clusters
+        assignIfChanged(&clusters, result.clusters)
+        logDuration("rebuildClusters", since: startedAt)
     }
 
     private func rebuildDeviceIndex() {
@@ -306,17 +315,25 @@ final class AppState: ObservableObject {
     private func rebuildObservationIndexes() {
         observationsByDevice = Dictionary(grouping: observations, by: \.deviceId)
             .mapValues { observations in
-                observations.sorted { $0.timestamp > $1.timestamp }
+                observations.sorted { $0.timestamp < $1.timestamp }
             }
 
-        latestObservationByDevice = observationsByDevice.compactMapValues(\.first)
+        latestObservationByDevice = observationsByDevice.compactMapValues(\.last)
+        rebuildRecentObservationIndexes(at: Date())
     }
 
     private func appendObservationIndex(_ observation: ScanObservation) {
-        var deviceObservations = observationsByDevice[observation.deviceId] ?? []
-        deviceObservations.insert(observation, at: 0)
-        observationsByDevice[observation.deviceId] = deviceObservations
-        latestObservationByDevice[observation.deviceId] = observation
+        observationsByDevice[observation.deviceId, default: []].append(observation)
+        recentObservationsByDevice[observation.deviceId, default: []].append(observation)
+        trimRecentObservations(for: observation.deviceId, at: observation.timestamp)
+
+        if let latest = latestObservationByDevice[observation.deviceId] {
+            if observation.timestamp >= latest.timestamp {
+                latestObservationByDevice[observation.deviceId] = observation
+            }
+        } else {
+            latestObservationByDevice[observation.deviceId] = observation
+        }
     }
 
     private func estimator(for deviceId: String) -> BLEDistanceEstimator {
@@ -376,7 +393,7 @@ final class AppState: ObservableObject {
             try? await Task.sleep(for: .seconds(1))
             guard !Task.isCancelled else { return }
             self?.pendingClusterRebuildTask = nil
-            self?.rebuildClusters()
+            await self?.rebuildClusters()
         }
     }
 
@@ -385,14 +402,17 @@ final class AppState: ObservableObject {
         observations.removeFirst(observations.count - maximumStoredObservations)
         rebuildObservationIndexes()
         classificationByDevice = [:]
+        rebuildClassificationInputs()
     }
 
     private func rebuildLiveOverview() {
+        let startedAt = Date()
         let visibleDevices = devices.sorted { $0.lastSeen > $1.lastSeen }
 
         guard !visibleDevices.isEmpty else {
-            knownDeviceCategorySummaries = []
-            knownDeviceManufacturerSummaries = []
+            assignIfChanged(&knownDeviceCategorySummaries, [])
+            assignIfChanged(&knownDeviceManufacturerSummaries, [])
+            logDuration("rebuildLiveOverview", since: startedAt)
             return
         }
         let classifiedDevices = visibleDevices.map { device in
@@ -410,7 +430,7 @@ final class AppState: ObservableObject {
             item.classification.categoryName
         }
 
-        knownDeviceCategorySummaries = devicesByKnownCategory
+        let categorySummaries = devicesByKnownCategory
             .map { categoryName, items in
                 KnownDeviceCategorySummary(
                     categoryName: categoryName,
@@ -433,7 +453,7 @@ final class AppState: ObservableObject {
             manufacturerDisplayName(for: item.classification)
         }
 
-        knownDeviceManufacturerSummaries = devicesByKnownManufacturer
+        let manufacturerSummaries = devicesByKnownManufacturer
             .map { manufacturerName, items in
                 KnownDeviceManufacturerSummary(
                     manufacturerName: manufacturerName,
@@ -448,6 +468,9 @@ final class AppState: ObservableObject {
                 }
                 return $0.count > $1.count
             }
+        assignIfChanged(&knownDeviceCategorySummaries, categorySummaries)
+        assignIfChanged(&knownDeviceManufacturerSummaries, manufacturerSummaries)
+        logDuration("rebuildLiveOverview", since: startedAt)
     }
 
     private func manufacturerDisplayName(for classification: DetectedDeviceClassification) -> String {
@@ -495,17 +518,172 @@ final class AppState: ObservableObject {
 
     private func save() async {
         do {
-            try await storage.save(
-                AppDataSnapshot(
-                    devices: devices,
-                    observations: observations,
-                    sessions: sessions
-                )
+            let startedAt = Date()
+            let snapshot = AppDataSnapshot(
+                devices: devices,
+                observations: observations,
+                sessions: sessions
             )
+            logDuration("save snapshot", since: startedAt)
+            try await storage.save(snapshot)
             lastStorageError = nil
         } catch {
             lastStorageError = error.localizedDescription
         }
+    }
+
+    private func classificationInput(for device: BluetoothDevice) -> ClassificationInputKey {
+        if let input = classificationInputByDevice[device.id] {
+            return input
+        }
+
+        let input = makeClassificationInput(
+            for: device,
+            observations: observationsByDevice[device.id] ?? []
+        )
+        classificationInputByDevice[device.id] = input
+        return input
+    }
+
+    private func updateClassificationInput(for device: BluetoothDevice, observation: ScanObservation) {
+        let existing = classificationInputByDevice[device.id]
+            ?? makeClassificationInput(for: device, observations: observationsByDevice[device.id] ?? [])
+        var serviceUUIDs = Set(existing.serviceUUIDs)
+        serviceUUIDs.formUnion(observation.serviceUUIDs)
+
+        let updated = ClassificationInputKey(
+            localName: preferredLocalName(for: device),
+            manufacturerIdentifier: observation.manufacturerIdentifier ?? existing.manufacturerIdentifier,
+            appearanceValue: observation.appearanceValue ?? existing.appearanceValue,
+            serviceUUIDs: serviceUUIDs.sorted()
+        )
+
+        if updated != existing {
+            classificationByDevice[device.id] = nil
+            classificationInputByDevice[device.id] = updated
+        } else if classificationInputByDevice[device.id] == nil {
+            classificationInputByDevice[device.id] = updated
+        }
+    }
+
+    private func rebuildClassificationInputs() {
+        classificationInputByDevice = Dictionary(
+            uniqueKeysWithValues: devices.map { device in
+                (
+                    device.id,
+                    makeClassificationInput(
+                        for: device,
+                        observations: observationsByDevice[device.id] ?? []
+                    )
+                )
+            }
+        )
+    }
+
+    private func makeClassificationInput(
+        for device: BluetoothDevice,
+        observations deviceObservations: [ScanObservation]
+    ) -> ClassificationInputKey {
+        let latestManufacturerIdentifier = deviceObservations.reversed().lazy.compactMap(\.manufacturerIdentifier).first
+        let latestAppearanceValue = deviceObservations.reversed().lazy.compactMap(\.appearanceValue).first
+        let serviceUUIDs = Set(deviceObservations.flatMap(\.serviceUUIDs)).sorted()
+
+        return ClassificationInputKey(
+            localName: preferredLocalName(for: device),
+            manufacturerIdentifier: latestManufacturerIdentifier,
+            appearanceValue: latestAppearanceValue,
+            serviceUUIDs: serviceUUIDs
+        )
+    }
+
+    private func rebuildRecentObservationIndexes(at date: Date) {
+        let cutoff = date.addingTimeInterval(-clusterRollingHistoryWindow)
+        recentObservationsByDevice = observationsByDevice.mapValues { observations in
+            observations.filter { $0.timestamp >= cutoff }
+        }
+    }
+
+    private func trimRecentObservations(for deviceId: String, at date: Date) {
+        let cutoff = date.addingTimeInterval(-clusterRollingHistoryWindow)
+        recentObservationsByDevice[deviceId]?.removeAll { $0.timestamp < cutoff }
+    }
+
+    private func clusterSnapshots(at date: Date) -> [ClusterDetectionDeviceSnapshot] {
+        devices.compactMap { device in
+            guard let latestObservation = latestObservationByDevice[device.id],
+                  latestObservation.rssi >= clusterRSSIFloor
+            else { return nil }
+
+            let recentObservations = recentObservationsByDevice[device.id] ?? []
+            let rollingRSSIValues = recentObservations
+                .filter { $0.timestamp >= date.addingTimeInterval(-clusterRollingHistoryWindow) && $0.rssi >= clusterRSSIFloor }
+                .map { Double($0.rssi) }
+
+            return ClusterDetectionDeviceSnapshot(
+                device: device,
+                category: classification(for: device).category,
+                latestObservation: latestObservation,
+                firstSeen: device.firstSeen,
+                correlationBuckets: rssiBuckets(
+                    for: recentObservations,
+                    since: date.addingTimeInterval(-clusterCorrelationWindow)
+                ),
+                rollingBuckets: rssiBuckets(
+                    for: recentObservations,
+                    since: date.addingTimeInterval(-clusterRollingHistoryWindow)
+                ),
+                isStationary: isStationaryRSSI(rollingRSSIValues),
+                medianRSSI: median(rollingRSSIValues)
+            )
+        }
+    }
+
+    private func rssiBuckets(for observations: [ScanObservation], since cutoff: Date) -> [Int: Double] {
+        let grouped = Dictionary(grouping: observations) { observation in
+            Int(floor(observation.timestamp.timeIntervalSince1970))
+        }
+
+        return grouped.compactMapValues { observations in
+            let validRSSI = observations
+                .filter { $0.timestamp >= cutoff && $0.rssi >= clusterRSSIFloor }
+                .map { Double($0.rssi) }
+
+            guard !validRSSI.isEmpty else { return nil }
+            return validRSSI.reduce(0, +) / Double(validRSSI.count)
+        }
+    }
+
+    private func isStationaryRSSI(_ values: [Double]) -> Bool {
+        guard values.count >= clusterMinimumOverlapCount else { return false }
+        return variance(values) < clusterStationaryVarianceThreshold
+    }
+
+    private func variance(_ values: [Double]) -> Double {
+        guard !values.isEmpty else { return 0 }
+        let mean = values.reduce(0, +) / Double(values.count)
+        return values.reduce(0.0) { $0 + pow($1 - mean, 2) } / Double(values.count)
+    }
+
+    private func median(_ values: [Double]) -> Double? {
+        guard !values.isEmpty else { return nil }
+        let sortedValues = values.sorted()
+        let middle = sortedValues.count / 2
+        if sortedValues.count.isMultiple(of: 2) {
+            return (sortedValues[middle - 1] + sortedValues[middle]) / 2
+        } else {
+            return sortedValues[middle]
+        }
+    }
+
+    private func assignIfChanged<Value: Equatable>(_ value: inout Value, _ newValue: Value) {
+        if value != newValue {
+            value = newValue
+        }
+    }
+
+    private func logDuration(_ operation: StaticString, since startedAt: Date) {
+        let elapsedMilliseconds = Date().timeIntervalSince(startedAt) * 1_000
+        logger.debug("\(operation, privacy: .public) completed in \(elapsedMilliseconds, format: .fixed(precision: 2), privacy: .public) ms")
     }
 
 }

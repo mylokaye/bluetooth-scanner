@@ -5,6 +5,32 @@ struct ClusterDetectionResult: Sendable {
     var clusters: [DeviceCluster]
 }
 
+struct ClusterDetectionDeviceSnapshot: Sendable {
+    let device: BluetoothDevice
+    let category: DeviceCategory
+    let latestObservation: ScanObservation
+    let firstSeen: Date
+    let correlationBuckets: [Int: Double]
+    let rollingBuckets: [Int: Double]
+    let isStationary: Bool
+    let medianRSSI: Double?
+}
+
+actor ClusterDetectionWorker {
+    private let service = ClusterDetectionService()
+
+    func reset() {
+        service.reset()
+    }
+
+    func detectClusters(
+        snapshots: [ClusterDetectionDeviceSnapshot],
+        at date: Date = Date()
+    ) -> ClusterDetectionResult {
+        service.detectClusters(snapshots: snapshots, at: date)
+    }
+}
+
 final class ClusterDetectionService {
     private struct PendingAssignment {
         var anchorId: String
@@ -110,6 +136,72 @@ final class ClusterDetectionService {
             from: personalDevices.filter { assignments[$0.id] == nil },
             bucketsByDeviceId: rollingBuckets,
             observationsByDevice: observationsByDevice,
+            classificationsByDevice: classificationsByDevice,
+            at: date
+        ) {
+            clusters.append(ownerCluster)
+        }
+
+        return ClusterDetectionResult(
+            clusters: clusters.sorted(by: clusterSort)
+        )
+    }
+
+    func detectClusters(
+        snapshots: [ClusterDetectionDeviceSnapshot],
+        at date: Date = Date()
+    ) -> ClusterDetectionResult {
+        let activeSnapshots = snapshots.filter { snapshot in
+            date.timeIntervalSince(snapshot.latestObservation.timestamp) <= staleDeviceInterval
+        }
+        let snapshotsByDeviceId = Dictionary(
+            uniqueKeysWithValues: activeSnapshots.map { ($0.device.id, $0) }
+        )
+
+        let phones = activeSnapshots
+            .filter { $0.category == .phone }
+            .map(\.device)
+        let personalDevices = activeSnapshots
+            .filter { $0.category != .phone && personalDeviceWeight(for: $0.category) != nil }
+            .map(\.device)
+        let eligiblePersonalDevices = activeSnapshots
+            .filter { $0.category != .phone && personalDeviceWeight(for: $0.category) != nil && !$0.isStationary }
+            .map(\.device)
+
+        let correlationBuckets = Dictionary(
+            uniqueKeysWithValues: activeSnapshots.map { ($0.device.id, $0.correlationBuckets) }
+        )
+        let rollingBuckets = Dictionary(
+            uniqueKeysWithValues: activeSnapshots.map { ($0.device.id, $0.rollingBuckets) }
+        )
+        let classificationsByDevice = Dictionary(
+            uniqueKeysWithValues: activeSnapshots.map {
+                ($0.device.id, DetectedDeviceClassification.placeholder(category: $0.category))
+            }
+        )
+
+        let correlationsByDevice = pairwisePhoneCorrelations(
+            phones: phones,
+            personalDevices: eligiblePersonalDevices,
+            bucketsByDeviceId: correlationBuckets
+        )
+        let assignments = stableAssignments(
+            for: eligiblePersonalDevices,
+            correlationsByDevice: correlationsByDevice
+        )
+
+        var clusters = phoneClusters(
+            phones: phones,
+            assignments: assignments,
+            correlationsByDevice: correlationsByDevice,
+            classificationsByDevice: classificationsByDevice,
+            snapshotsByDeviceId: snapshotsByDeviceId
+        )
+
+        if let ownerCluster = ownerCluster(
+            from: personalDevices.filter { assignments[$0.id] == nil },
+            bucketsByDeviceId: rollingBuckets,
+            snapshotsByDeviceId: snapshotsByDeviceId,
             classificationsByDevice: classificationsByDevice,
             at: date
         ) {
@@ -247,6 +339,49 @@ final class ClusterDetectionService {
         }
     }
 
+    private func phoneClusters(
+        phones: [BluetoothDevice],
+        assignments: [String: String],
+        correlationsByDevice: [String: [(phoneId: String, correlation: Double)]],
+        classificationsByDevice: [String: DetectedDeviceClassification],
+        snapshotsByDeviceId: [String: ClusterDetectionDeviceSnapshot]
+    ) -> [DeviceCluster] {
+        phones.map { phone in
+            let assignedDeviceIds = cappedAssignedDeviceIds(
+                for: phone.id,
+                assignments: assignments,
+                correlationsByDevice: correlationsByDevice,
+                classificationsByDevice: classificationsByDevice
+            )
+            let memberIds = ([phone.id] + assignedDeviceIds).sorted()
+            let assignedConfidence = assignedDeviceIds.reduce(0.0) { partial, deviceId in
+                let category = classificationsByDevice[deviceId]?.category
+                let weight = personalDeviceWeight(for: category) ?? 0
+                let correlation = correlationsByDevice[deviceId]?
+                    .first { $0.phoneId == phone.id }?
+                    .correlation ?? 0
+                return partial + (weight * smoothedCorrelation(for: deviceId, anchorId: phone.id, correlation: correlation))
+            }
+            let confidence = min(1, phoneBaseConfidence + assignedConfidence)
+            let firstSeen = memberIds.compactMap { snapshotsByDeviceId[$0]?.firstSeen }.min() ?? phone.firstSeen
+            let lastSeen = memberIds.compactMap { snapshotsByDeviceId[$0]?.latestObservation.timestamp }.max() ?? phone.lastSeen
+
+            return DeviceCluster(
+                id: stableClusterId(key: "phone:\(phone.id)"),
+                deviceIds: memberIds,
+                anchorDeviceId: phone.id,
+                clusterType: assignedDeviceIds.isEmpty ? .singleDevice : .commonlySeenTogether,
+                confidenceScore: confidence,
+                confidenceLabel: confidenceLabel(for: confidence),
+                seenTogetherCount: max(1, memberIds.count),
+                firstSeen: firstSeen,
+                lastSeen: lastSeen,
+                isOwnerGroup: false,
+                reasons: reasons(for: assignedDeviceIds.isEmpty, isOwnerGroup: false)
+            )
+        }
+    }
+
     private func cappedAssignedDeviceIds(
         for phoneId: String,
         assignments: [String: String],
@@ -346,6 +481,73 @@ final class ClusterDetectionService {
         )
     }
 
+    private func ownerCluster(
+        from devices: [BluetoothDevice],
+        bucketsByDeviceId: [String: [Int: Double]],
+        snapshotsByDeviceId: [String: ClusterDetectionDeviceSnapshot],
+        classificationsByDevice: [String: DetectedDeviceClassification],
+        at date: Date
+    ) -> DeviceCluster? {
+        let closeDevices = devices
+            .filter { (snapshotsByDeviceId[$0.id]?.medianRSSI ?? -Double.infinity) > ownerCloseRSSIThreshold }
+            .sorted { $0.id < $1.id }
+        let cappedCloseDevices = cappedOwnerDevices(
+            from: closeDevices,
+            snapshotsByDeviceId: snapshotsByDeviceId,
+            classificationsByDevice: classificationsByDevice
+        )
+
+        guard !cappedCloseDevices.isEmpty else {
+            resetOwnerCandidate()
+            return nil
+        }
+
+        let averageCorrelation: Double?
+        if cappedCloseDevices.count == 1 {
+            averageCorrelation = nil
+        } else {
+            let pairCorrelations = pairwiseCorrelations(
+                deviceIds: cappedCloseDevices.map(\.id),
+                bucketsByDeviceId: bucketsByDeviceId
+            )
+            let candidateAverageCorrelation = pairCorrelations.isEmpty
+                ? 0
+                : pairCorrelations.reduce(0, +) / Double(pairCorrelations.count)
+
+            guard candidateAverageCorrelation > ownerStrongCorrelation else {
+                resetOwnerCandidate()
+                return nil
+            }
+            averageCorrelation = candidateAverageCorrelation
+        }
+
+        updateOwnerCandidateCycleCount(for: cappedCloseDevices)
+
+        guard ownerCandidateCycleCount >= ownerMinimumCycles else {
+            return nil
+        }
+
+        let confidence = ownerConfidence(
+            for: cappedCloseDevices,
+            classificationsByDevice: classificationsByDevice,
+            averageCorrelation: averageCorrelation
+        )
+
+        return DeviceCluster(
+            id: stableClusterId(key: "owner"),
+            deviceIds: cappedCloseDevices.map(\.id),
+            anchorDeviceId: nil,
+            clusterType: .ownerPersonalDevices,
+            confidenceScore: confidence,
+            confidenceLabel: confidenceLabel(for: confidence),
+            seenTogetherCount: cappedCloseDevices.count,
+            firstSeen: cappedCloseDevices.compactMap { snapshotsByDeviceId[$0.id]?.firstSeen }.min() ?? date,
+            lastSeen: cappedCloseDevices.compactMap { snapshotsByDeviceId[$0.id]?.latestObservation.timestamp }.max() ?? date,
+            isOwnerGroup: true,
+            reasons: reasons(for: false, isOwnerGroup: true, memberCount: cappedCloseDevices.count)
+        )
+    }
+
     private func updateOwnerCandidateCycleCount(for devices: [BluetoothDevice]) {
         let candidateKey = devices.map(\.id).sorted().joined(separator: "|")
         if ownerCandidateKey == candidateKey {
@@ -411,6 +613,29 @@ final class ClusterDetectionService {
             .sorted { $0.id < $1.id }
     }
 
+    private func cappedOwnerDevices(
+        from devices: [BluetoothDevice],
+        snapshotsByDeviceId: [String: ClusterDetectionDeviceSnapshot],
+        classificationsByDevice: [String: DetectedDeviceClassification]
+    ) -> [BluetoothDevice] {
+        let bestWatch = bestDevice(
+            in: devices,
+            category: .watch,
+            snapshotsByDeviceId: snapshotsByDeviceId,
+            classificationsByDevice: classificationsByDevice
+        )
+        let bestHeadphones = bestDevice(
+            in: devices,
+            category: .headphones,
+            snapshotsByDeviceId: snapshotsByDeviceId,
+            classificationsByDevice: classificationsByDevice
+        )
+
+        return [bestWatch, bestHeadphones]
+            .compactMap { $0 }
+            .sorted { $0.id < $1.id }
+    }
+
     private func bestDevice(
         in devices: [BluetoothDevice],
         category: DeviceCategory,
@@ -422,6 +647,21 @@ final class ClusterDetectionService {
             .max { lhs, rhs in
                 let lhsRSSI = latestValidObservation(for: lhs.id, observationsByDevice: observationsByDevice)?.rssi ?? Int.min
                 let rhsRSSI = latestValidObservation(for: rhs.id, observationsByDevice: observationsByDevice)?.rssi ?? Int.min
+                return lhsRSSI < rhsRSSI
+            }
+    }
+
+    private func bestDevice(
+        in devices: [BluetoothDevice],
+        category: DeviceCategory,
+        snapshotsByDeviceId: [String: ClusterDetectionDeviceSnapshot],
+        classificationsByDevice: [String: DetectedDeviceClassification]
+    ) -> BluetoothDevice? {
+        devices
+            .filter { classificationsByDevice[$0.id]?.category == category }
+            .max { lhs, rhs in
+                let lhsRSSI = snapshotsByDeviceId[lhs.id]?.latestObservation.rssi ?? Int.min
+                let rhsRSSI = snapshotsByDeviceId[rhs.id]?.latestObservation.rssi ?? Int.min
                 return lhsRSSI < rhsRSSI
             }
     }
@@ -606,5 +846,18 @@ final class ClusterDetectionService {
         return bytes.withUnsafeBufferPointer { buffer in
             UUID(uuidString: NSUUID(uuidBytes: buffer.baseAddress!).uuidString) ?? UUID()
         }
+    }
+}
+
+private extension DetectedDeviceClassification {
+    static func placeholder(category: DeviceCategory) -> DetectedDeviceClassification {
+        DetectedDeviceClassification(
+            manufacturer: nil,
+            appearance: nil,
+            category: category,
+            likelyProduct: nil,
+            confidence: 0,
+            evidence: []
+        )
     }
 }

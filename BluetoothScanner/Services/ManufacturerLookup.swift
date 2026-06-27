@@ -72,9 +72,50 @@ struct ManufacturerLookup {
 struct FuzzyManufacturerLookup {
     static let empty = FuzzyManufacturerLookup(records: [], manufacturers: [])
 
+    private struct IndexedTerm {
+        let manufacturer: String
+        let term: String
+        let order: Int
+    }
+
+    private final class LookupCache {
+        private var hits: [String: String] = [:]
+        private var misses: Set<String> = []
+        private let lock = NSLock()
+
+        func value(for key: String) -> String?? {
+            lock.lock()
+            defer { lock.unlock() }
+
+            if let hit = hits[key] {
+                return .some(hit)
+            }
+
+            if misses.contains(key) {
+                return .some(nil)
+            }
+
+            return nil
+        }
+
+        func store(_ value: String?, for key: String) {
+            lock.lock()
+            defer { lock.unlock() }
+
+            if let value {
+                hits[key] = value
+                misses.remove(key)
+            } else {
+                hits[key] = nil
+                misses.insert(key)
+            }
+        }
+    }
+
     private static let logger = Logger(subsystem: "BluetoothScanner", category: "FuzzyManufacturerLookup")
 
-    private let records: [ManufacturerNameMatchRecord]
+    private let termsByFirstToken: [String: [IndexedTerm]]
+    private let cache = LookupCache()
 
     init(
         bundle: Bundle = .main,
@@ -108,25 +149,38 @@ struct FuzzyManufacturerLookup {
             Self.logger.error("Missing bundled manufacturer company JSON resource: \(companyResourceName).json")
         }
 
-        self.records = Self.makeRecords(records: records, manufacturers: manufacturers)
+        self.termsByFirstToken = Self.makeIndex(records: Self.makeRecords(records: records, manufacturers: manufacturers))
     }
 
     init(records: [ManufacturerNameMatchRecord], manufacturers: [BluetoothManufacturer] = []) {
-        self.records = Self.makeRecords(records: records, manufacturers: manufacturers)
+        self.termsByFirstToken = Self.makeIndex(records: Self.makeRecords(records: records, manufacturers: manufacturers))
     }
 
     func manufacturerName(for deviceName: String?) -> String? {
+        let startedAt = Date()
         guard let deviceName else { return nil }
         let normalizedDeviceName = Self.normalized(deviceName)
         guard !normalizedDeviceName.isEmpty else { return nil }
+        if let cached = cache.value(for: normalizedDeviceName) {
+            return cached
+        }
 
         let searchableDeviceName = " \(normalizedDeviceName) "
-        return records.first { record in
-            record.terms.contains { term in
-                let normalizedTerm = Self.normalized(term)
-                return !normalizedTerm.isEmpty && searchableDeviceName.contains(" \(normalizedTerm) ")
+        let candidateTerms = Set(normalizedDeviceName.split(separator: " ").map(String.init))
+            .flatMap { termsByFirstToken[$0] ?? [] }
+            .sorted { lhs, rhs in
+                if lhs.order == rhs.order {
+                    return lhs.term.count > rhs.term.count
+                }
+                return lhs.order < rhs.order
             }
+
+        let manufacturer = candidateTerms.first { indexedTerm in
+            searchableDeviceName.contains(" \(indexedTerm.term) ")
         }?.manufacturer
+        cache.store(manufacturer, for: normalizedDeviceName)
+        Self.logDuration("fuzzy manufacturer lookup", since: startedAt)
+        return manufacturer
     }
 
     private static func makeRecords(
@@ -134,6 +188,33 @@ struct FuzzyManufacturerLookup {
         manufacturers: [BluetoothManufacturer]
     ) -> [ManufacturerNameMatchRecord] {
         records + manufacturers.compactMap(catalogRecord)
+    }
+
+    private static func makeIndex(records: [ManufacturerNameMatchRecord]) -> [String: [IndexedTerm]] {
+        var termsByFirstToken: [String: [IndexedTerm]] = [:]
+        var seenTerms: Set<String> = []
+
+        for (recordIndex, record) in records.enumerated() {
+            for rawTerm in record.terms {
+                let term = normalized(rawTerm)
+                guard !term.isEmpty,
+                      let firstToken = term.split(separator: " ").first.map(String.init)
+                else { continue }
+
+                let termKey = "\(record.manufacturer)|\(term)"
+                guard seenTerms.insert(termKey).inserted else { continue }
+
+                termsByFirstToken[firstToken, default: []].append(
+                    IndexedTerm(
+                        manufacturer: record.manufacturer,
+                        term: term,
+                        order: recordIndex
+                    )
+                )
+            }
+        }
+
+        return termsByFirstToken
     }
 
     private static func catalogRecord(for manufacturer: BluetoothManufacturer) -> ManufacturerNameMatchRecord? {
@@ -185,6 +266,11 @@ struct FuzzyManufacturerLookup {
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: #"[^\p{L}\p{N}]+"#, with: " ", options: .regularExpression)
             .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+    }
+
+    private static func logDuration(_ operation: StaticString, since startedAt: Date) {
+        let elapsedMilliseconds = Date().timeIntervalSince(startedAt) * 1_000
+        logger.debug("\(operation, privacy: .public) completed in \(elapsedMilliseconds, format: .fixed(precision: 2), privacy: .public) ms")
     }
 }
 
