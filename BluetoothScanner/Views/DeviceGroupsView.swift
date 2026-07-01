@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DeviceGroupsView: View {
-    @EnvironmentObject private var appState: AppState
+    @Environment(AppState.self) private var appState
 
     var body: some View {
         List {
@@ -28,7 +28,7 @@ struct DeviceGroupsView: View {
                 .listRowBackground(Color(.secondarySystemGroupedBackground))
             } else {
                 Section("Detected") {
-                    ForEach(Array(appState.clusters.enumerated()), id: \.element.id) { index, cluster in
+                    ForEach(appState.clusters.enumerated(), id: \.element.id) { index, cluster in
                         ClusterRow(
                             index: index + 1,
                             cluster: cluster,
@@ -91,7 +91,7 @@ private struct ClusterRow: View {
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: cluster.isOwnerGroup ? "person.crop.circle.badge.questionmark" : "person.2")
-                .font(.system(size: 24, weight: .semibold))
+                .font(.title2.weight(.semibold))
                 .foregroundStyle(.blue)
                 .frame(width: 54, height: 54)
                 .background(Color.blue.opacity(0.10), in: Circle())
@@ -154,5 +154,5 @@ private extension ConfidenceLabel {
     NavigationStack {
         DeviceGroupsView()
     }
-    .environmentObject(AppState.preview)
+    .environment(AppState.preview)
 }

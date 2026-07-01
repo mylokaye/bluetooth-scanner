@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import OSLog
 
 private struct ClassificationInputKey: Equatable, Sendable {
@@ -9,18 +10,21 @@ private struct ClassificationInputKey: Equatable, Sendable {
 }
 
 @MainActor
-final class AppState: ObservableObject {
-    @Published private(set) var devices: [BluetoothDevice] = []
-    @Published private(set) var observations: [ScanObservation] = []
-    @Published private(set) var sessions: [ScanSession] = []
-    @Published private(set) var clusters: [DeviceCluster] = []
-    @Published private(set) var knownDeviceCategorySummaries: [KnownDeviceCategorySummary] = []
-    @Published private(set) var knownDeviceManufacturerSummaries: [KnownDeviceManufacturerSummary] = []
-    @Published var lastStorageError: String?
+@Observable
+final class AppState {
+    private(set) var devices: [BluetoothDevice] = []
+    private(set) var observations: [ScanObservation] = []
+    private(set) var sessions: [ScanSession] = []
+    private(set) var clusters: [DeviceCluster] = []
+    private(set) var knownDeviceCategorySummaries: [KnownDeviceCategorySummary] = []
+    private(set) var knownDeviceManufacturerSummaries: [KnownDeviceManufacturerSummary] = []
+    var lastStorageError: String?
 
     let scanner = BluetoothScannerService()
 
+    @ObservationIgnored
     private let storage = LocalStorageService()
+    @ObservationIgnored
     private lazy var deviceClassifier: DeviceClassifier = {
         let manufacturerLookup = ManufacturerLookup()
         let appearanceLookup = AppearanceLookup()
@@ -29,21 +33,37 @@ final class AppState: ObservableObject {
             appearanceLookup: appearanceLookup
         )
     }()
+    @ObservationIgnored
     private var sessionService = SessionService()
+    @ObservationIgnored
     private let clusterWorker = ClusterDetectionWorker()
+    @ObservationIgnored
     private let logger = Logger(subsystem: "BluetoothScanner", category: "AppState")
+    @ObservationIgnored
     private var pendingSaveTask: Task<Void, Never>?
+    @ObservationIgnored
     private var pendingClusterRebuildTask: Task<Void, Never>?
+    @ObservationIgnored
     private var pendingLiveOverviewTask: Task<Void, Never>?
+    @ObservationIgnored
     private var distanceEstimators: [String: BLEDistanceEstimator] = [:]
+    @ObservationIgnored
     private var lastDistanceSnapshots: [String: BLEDistanceSnapshot] = [:]
+    @ObservationIgnored
     private var proximityStabilizers: [String: ProximityStabilizer] = [:]
+    @ObservationIgnored
     private var deviceIndex: [String: Int] = [:]  // deviceId → index in devices array
+    @ObservationIgnored
     private var observationsByDevice: [String: [ScanObservation]] = [:]
+    @ObservationIgnored
     private var recentObservationsByDevice: [String: [ScanObservation]] = [:]
+    @ObservationIgnored
     private var latestObservationByDevice: [String: ScanObservation] = [:]
+    @ObservationIgnored
     private var classificationByDevice: [String: DetectedDeviceClassification] = [:]
+    @ObservationIgnored
     private var classificationInputByDevice: [String: ClassificationInputKey] = [:]
+    @ObservationIgnored
     private var trackedDeviceIds: Set<String> = [] // devices whose detail view is currently open
     private let maximumStoredObservations = 5_000
     private let clusterRollingHistoryWindow: TimeInterval = 30

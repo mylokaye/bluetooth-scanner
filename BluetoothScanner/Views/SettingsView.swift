@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @EnvironmentObject private var appState: AppState
+    @Environment(AppState.self) private var appState
 
     var body: some View {
         List {
@@ -33,5 +33,5 @@ struct SettingsView: View {
     NavigationStack {
         SettingsView()
     }
-    .environmentObject(AppState.preview)
+    .environment(AppState.preview)
 }

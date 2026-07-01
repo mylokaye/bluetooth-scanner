@@ -1,10 +1,9 @@
-import Combine
 import SwiftUI
 
 struct DeviceDetailView: View {
-    @EnvironmentObject private var appState: AppState
-    @State private var currentDate = Date()
-    @State private var lastSeenReferenceDate = Date()
+    @Environment(AppState.self) private var appState
+    @State private var currentDate = Date.now
+    @State private var lastSeenReferenceDate = Date.now
 
     let deviceId: String
     var showsSheetTitle = false
@@ -28,9 +27,6 @@ struct DeviceDetailView: View {
     private var proximityState: ProximityState {
         appState.stabilizedProximity(for: deviceId, at: currentDate)
     }
-
-    private let distanceTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    private let lastSeenTimer = Timer.publish(every: 8, on: .main, in: .common).autoconnect()
 
     var body: some View {
         ScrollView {
@@ -72,20 +68,26 @@ struct DeviceDetailView: View {
         .scrollContentBackground(.hidden)
         .navigationTitle(showsSheetTitle ? "" : deviceTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .onReceive(distanceTimer) { date in
-            currentDate = date
-        }
-        .onReceive(lastSeenTimer) { date in
-            lastSeenReferenceDate = date
-        }
         .onAppear {
-            let now = Date()
+            let now = Date.now
             currentDate = now
             lastSeenReferenceDate = now
             appState.startTrackingDistance(for: deviceId)
         }
         .onDisappear {
             appState.stopTrackingDistance(for: deviceId)
+        }
+        .task {
+            while !Task.isCancelled {
+                currentDate = Date.now
+                try? await Task.sleep(for: .seconds(1))
+            }
+        }
+        .task {
+            while !Task.isCancelled {
+                lastSeenReferenceDate = Date.now
+                try? await Task.sleep(for: .seconds(8))
+            }
         }
     }
 
@@ -129,7 +131,7 @@ struct DeviceDetailView: View {
         let rows = [
             DetailRow(title: "Advertised name", value: displayValue(latestObservation?.advertisedName ?? device.advertisedName)),
             DetailRow(title: "Appearance", value: displayValue(classification?.appearance)),
-            DetailRow(title: "Appearance value", value: latestObservation?.appearanceValue.map { String(format: "0x%04X", $0) } ?? "-"),
+            DetailRow(title: "Appearance value", value: latestObservation?.appearanceValue.map { "0x\(String($0, radix: 16, uppercase: true))" } ?? "-"),
             DetailRow(title: "Category", value: displayValue(classification?.categoryName)),
             DetailRow(title: "Device identifier", value: displayValue(device.id)),
             DetailRow(title: "First seen", value: device.firstSeen.formatted(date: .abbreviated, time: .standard)),
@@ -254,7 +256,7 @@ private struct DetailMetricView: View {
                 .textCase(.uppercase)
 
             Text(value)
-                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .font(.title.bold())
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)
@@ -296,7 +298,7 @@ private struct DetailRowsCard: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+            ForEach(rows.enumerated(), id: \.offset) { index, row in
                 DetailRowView(row: row)
 
                 if index < rows.count - 1 {
@@ -342,10 +344,10 @@ private struct DetailRow: Hashable {
     NavigationStack {
         DeviceDetailView(deviceId: PreviewData.phone.id)
     }
-    .environmentObject(AppState.preview)
+    .environment(AppState.preview)
 }
 
 #Preview("Device Detail Sheet") {
     DeviceDetailView(deviceId: PreviewData.watch.id, showsSheetTitle: true)
-        .environmentObject(AppState.preview)
+        .environment(AppState.preview)
 }

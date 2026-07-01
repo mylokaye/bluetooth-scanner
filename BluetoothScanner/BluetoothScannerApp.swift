@@ -2,12 +2,12 @@ import SwiftUI
 
 @main
 struct BluetoothScannerApp: App {
-    @StateObject private var appState = AppState()
+    @State private var appState = AppState()
 
     var body: some Scene {
         WindowGroup {
             AppView()
-                .environmentObject(appState)
+                .environment(appState)
                 .task {
                     await appState.load()
                 }
@@ -16,44 +16,38 @@ struct BluetoothScannerApp: App {
 }
 
 struct AppView: View {
-    enum Tab {
+    enum AppTab {
         case live
         case groups
         case settings
     }
 
-    @State private var selectedTab: Tab = .live
+    @State private var selectedTab: AppTab = .live
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            NavigationStack {
-                LiveScanView()
+            Tab("Live Scan", systemImage: "dot.radiowaves.left.and.right", value: AppTab.live) {
+                NavigationStack {
+                    LiveScanView()
+                }
             }
-            .tabItem {
-                Label("Live Scan", systemImage: "dot.radiowaves.left.and.right")
-            }
-            .tag(Tab.live)
 
-            NavigationStack {
-                DeviceGroupsView()
+            Tab("Groups", systemImage: "rectangle.3.group", value: AppTab.groups) {
+                NavigationStack {
+                    DeviceGroupsView()
+                }
             }
-            .tabItem {
-                Label("Groups", systemImage: "rectangle.3.group")
-            }
-            .tag(Tab.groups)
 
-            NavigationStack {
-                SettingsView()
+            Tab("Settings", systemImage: "gearshape", value: AppTab.settings) {
+                NavigationStack {
+                    SettingsView()
+                }
             }
-            .tabItem {
-                Label("Settings", systemImage: "gearshape")
-            }
-            .tag(Tab.settings)
         }
     }
 }
 
 #Preview("App") {
     AppView()
-        .environmentObject(AppState.preview)
+        .environment(AppState.preview)
 }

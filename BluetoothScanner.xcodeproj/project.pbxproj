@@ -20,10 +20,9 @@
 		2A00010B2C2CC00100000001 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00020B2C2CC00100000001 /* SettingsView.swift */; };
 		2A00010C2C2CC00100000001 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00020C2C2CC00100000001 /* PreviewData.swift */; };
 		2A00010D2C2CC00100000001 /* UDIDCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00020D2C2CC00100000001 /* UDIDCatalog.swift */; };
-		2A0001112C2CC00100000001 /* BLEDistanceEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002112C2CC00100000001 /* BLEDistanceEstimator.swift */; };
 		2A00010E2C2CC00100000001 /* ProximityStabilizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00020E2C2CC00100000001 /* ProximityStabilizer.swift */; };
+		2A0001112C2CC00100000001 /* BLEDistanceEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002112C2CC00100000001 /* BLEDistanceEstimator.swift */; };
 		2A0001122C2CC00100000001 /* BLEDistanceEstimatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002122C2CC00100000001 /* BLEDistanceEstimatorTests.swift */; };
-		2A00011D2C2CC00100000001 /* ClusterDetectionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00021D2C2CC00100000001 /* ClusterDetectionServiceTests.swift */; };
 		2A0001132C2CC00100000001 /* BluetoothManufacturer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002132C2CC00100000001 /* BluetoothManufacturer.swift */; };
 		2A0001142C2CC00100000001 /* BluetoothAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002142C2CC00100000001 /* BluetoothAppearance.swift */; };
 		2A0001152C2CC00100000001 /* DetectedDeviceClassification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002152C2CC00100000001 /* DetectedDeviceClassification.swift */; };
@@ -31,8 +30,13 @@
 		2A0001172C2CC00100000001 /* AppearanceLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002172C2CC00100000001 /* AppearanceLookup.swift */; };
 		2A0001182C2CC00100000001 /* DeviceClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0002182C2CC00100000001 /* DeviceClassifier.swift */; };
 		2A0001192C2CC00100000001 /* data in Resources */ = {isa = PBXBuildFile; fileRef = 2A0002192C2CC00100000001 /* data */; };
-		2A00011C2C2CC00100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A00021C2C2CC00100000001 /* Assets.xcassets */; };
 		2A00011B2C2CC00100000001 /* DeviceClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00021B2C2CC00100000001 /* DeviceClassifierTests.swift */; };
+		2A00011C2C2CC00100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A00021C2C2CC00100000001 /* Assets.xcassets */; };
+		2A00011D2C2CC00100000001 /* ClusterDetectionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A00021D2C2CC00100000001 /* ClusterDetectionServiceTests.swift */; };
+		2A1001012C2CC00100000001 /* ScreenHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A1002012C2CC00100000001 /* ScreenHeader.swift */; };
+		2A1001022C2CC00100000001 /* LiveScanControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A1002022C2CC00100000001 /* LiveScanControls.swift */; };
+		2A1001032C2CC00100000001 /* LiveScanOverview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A1002032C2CC00100000001 /* LiveScanOverview.swift */; };
+		2A1001042C2CC00100000001 /* LiveScanDeviceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A1002042C2CC00100000001 /* LiveScanDeviceViews.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,10 +65,9 @@
 		2A00020B2C2CC00100000001 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		2A00020C2C2CC00100000001 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
 		2A00020D2C2CC00100000001 /* UDIDCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDIDCatalog.swift; sourceTree = "<group>"; };
-		2A0002112C2CC00100000001 /* BLEDistanceEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDistanceEstimator.swift; sourceTree = "<group>"; };
 		2A00020E2C2CC00100000001 /* ProximityStabilizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProximityStabilizer.swift; sourceTree = "<group>"; };
+		2A0002112C2CC00100000001 /* BLEDistanceEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDistanceEstimator.swift; sourceTree = "<group>"; };
 		2A0002122C2CC00100000001 /* BLEDistanceEstimatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDistanceEstimatorTests.swift; sourceTree = "<group>"; };
-		2A00021D2C2CC00100000001 /* ClusterDetectionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClusterDetectionServiceTests.swift; sourceTree = "<group>"; };
 		2A0002132C2CC00100000001 /* BluetoothManufacturer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothManufacturer.swift; sourceTree = "<group>"; };
 		2A0002142C2CC00100000001 /* BluetoothAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothAppearance.swift; sourceTree = "<group>"; };
 		2A0002152C2CC00100000001 /* DetectedDeviceClassification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectedDeviceClassification.swift; sourceTree = "<group>"; };
@@ -72,8 +75,13 @@
 		2A0002172C2CC00100000001 /* AppearanceLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceLookup.swift; sourceTree = "<group>"; };
 		2A0002182C2CC00100000001 /* DeviceClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceClassifier.swift; sourceTree = "<group>"; };
 		2A0002192C2CC00100000001 /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = data; sourceTree = "<group>"; };
-		2A00021C2C2CC00100000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2A00021B2C2CC00100000001 /* DeviceClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceClassifierTests.swift; sourceTree = "<group>"; };
+		2A00021C2C2CC00100000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2A00021D2C2CC00100000001 /* ClusterDetectionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClusterDetectionServiceTests.swift; sourceTree = "<group>"; };
+		2A1002012C2CC00100000001 /* ScreenHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenHeader.swift; sourceTree = "<group>"; };
+		2A1002022C2CC00100000001 /* LiveScanControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveScanControls.swift; sourceTree = "<group>"; };
+		2A1002032C2CC00100000001 /* LiveScanOverview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveScanOverview.swift; sourceTree = "<group>"; };
+		2A1002042C2CC00100000001 /* LiveScanDeviceViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveScanDeviceViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,7 +165,11 @@
 		2A0004062C2CC00100000001 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				2A1002012C2CC00100000001 /* ScreenHeader.swift */,
 				2A0002082C2CC00100000001 /* LiveScanView.swift */,
+				2A1002022C2CC00100000001 /* LiveScanControls.swift */,
+				2A1002032C2CC00100000001 /* LiveScanOverview.swift */,
+				2A1002042C2CC00100000001 /* LiveScanDeviceViews.swift */,
 				2A0002092C2CC00100000001 /* DeviceGroupsView.swift */,
 				2A00020A2C2CC00100000001 /* DeviceDetailView.swift */,
 				2A00020B2C2CC00100000001 /* SettingsView.swift */,
@@ -303,6 +315,10 @@
 				2A0001062C2CC00100000001 /* LocalStorageService.swift in Sources */,
 				2A0001072C2CC00100000001 /* SessionService.swift in Sources */,
 				2A0001082C2CC00100000001 /* LiveScanView.swift in Sources */,
+				2A1001012C2CC00100000001 /* ScreenHeader.swift in Sources */,
+				2A1001022C2CC00100000001 /* LiveScanControls.swift in Sources */,
+				2A1001032C2CC00100000001 /* LiveScanOverview.swift in Sources */,
+				2A1001042C2CC00100000001 /* LiveScanDeviceViews.swift in Sources */,
 				2A0001092C2CC00100000001 /* DeviceGroupsView.swift in Sources */,
 				2A00010A2C2CC00100000001 /* DeviceDetailView.swift in Sources */,
 				2A00010B2C2CC00100000001 /* SettingsView.swift in Sources */,
@@ -320,7 +336,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-					2A0001122C2CC00100000001 /* BLEDistanceEstimatorTests.swift in Sources */,
+				2A0001122C2CC00100000001 /* BLEDistanceEstimatorTests.swift in Sources */,
 				2A00011D2C2CC00100000001 /* ClusterDetectionServiceTests.swift in Sources */,
 				2A00011B2C2CC00100000001 /* DeviceClassifierTests.swift in Sources */,
 			);
@@ -388,7 +404,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -445,7 +461,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -472,7 +488,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -504,7 +520,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -528,7 +544,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 359K54EWUW;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -554,7 +570,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 359K54EWUW;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

@@ -1,18 +1,24 @@
 import CoreBluetooth
 import Foundation
+import Observation
 
 @MainActor
-final class BluetoothScannerService: NSObject, ObservableObject {
-    @Published private(set) var authorizationMessage = "Bluetooth permission has not been requested yet."
-    @Published private(set) var bluetoothState = "-"
-    @Published private(set) var isScanning = false
-    @Published private(set) var liveDevices: [BluetoothDevice] = []
-    @Published private(set) var liveRSSI: [String: Int] = [:]
+@Observable
+final class BluetoothScannerService: NSObject {
+    private(set) var authorizationMessage = "Bluetooth permission has not been requested yet."
+    private(set) var bluetoothState = "-"
+    private(set) var isScanning = false
+    private(set) var liveDevices: [BluetoothDevice] = []
+    private(set) var liveRSSI: [String: Int] = [:]
 
+    @ObservationIgnored
     var onObservation: ((ScanObservation, BluetoothDevice) -> Void)?
 
+    @ObservationIgnored
     private var centralManager: CBCentralManager?
+    @ObservationIgnored
     private var lastEmissionByDeviceId: [String: (date: Date, rssi: Int)] = [:]
+    @ObservationIgnored
     private var liveDeviceIndexById: [String: Int] = [:]
     private let minimumDuplicateEmissionInterval: TimeInterval = 1
     private let minimumRSSIDeltaForImmediateEmission = 6
